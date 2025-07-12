@@ -1,0 +1,61 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": true,
+        ".write": true,
+
+        "queue": {
+          "$videoId": {
+            ".validate": "newData.hasChildren(['title', 'url', 'thumbnail', 'addedBy', 'addedAt'])"
+          }
+        },
+
+        "chat": {
+          "$messageId": {
+            ".validate": "newData.hasChildren(['text', 'user', 'timestamp'])"
+          }
+        },
+
+        "state": {
+          ".validate": "newData.hasChildren(['currentVideo', 'isPlaying', 'currentTime', 'lastUpdated'])"
+        },
+
+        "users": {
+          "$userId": {
+            ".validate": "newData.hasChildren(['name', 'isSpeaking', 'joinedAt'])"
+          }
+        },
+
+        "voiceOffers": {
+          "$offererId": {
+            "$targetId": {
+              ".validate": "newData.hasChildren(['type', 'sdp'])"
+            }
+          }
+        },
+
+        "voiceAnswers": {
+          "$answererId": {
+            "$targetId": {
+              ".validate": "newData.hasChildren(['type', 'sdp'])"
+            }
+          }
+        },
+
+        "voiceCandidates": {
+          "$userId": {
+            "$targetId": {
+              "$candidateId": {
+                ".validate": "newData.hasChildren(['candidate', 'sdpMid', 'sdpMLineIndex'])"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    ".read": false,
+    ".write": false
+  }
+}

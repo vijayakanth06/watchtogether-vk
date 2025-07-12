@@ -1,5 +1,16 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, push, onValue, off, update } from 'firebase/database';
+import { 
+  getDatabase, 
+  ref, 
+  set, 
+  onValue, 
+  push, 
+  remove, 
+  update, 
+  off,
+  onDisconnect,
+  get
+} from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,6 +23,17 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getDatabase(app);
 
-export { database, ref, set, push, onValue, off, update };
+export { 
+  db, 
+  ref, 
+  set, 
+  onValue, 
+  push, 
+  remove, 
+  update, 
+  off,
+  onDisconnect,
+  get
+};
