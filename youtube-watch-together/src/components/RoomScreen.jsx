@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { YouTubePlayer } from './YouTubePlayer';
 import { VideoSearch } from './VideoSearch';
 import { VideoQueue } from './VideoQueue';
 import { ChatWindow } from './ChatWindow';
@@ -24,7 +23,7 @@ export const RoomScreen = ({
   onSendMessage,
   onPushToTalk,
   onPlayerReady,
-  onPlayerStateChange,
+  handlePlayerStateChange,
   onLeaveRoom,
   removeFromQueue
 }) => {
@@ -89,11 +88,11 @@ export const RoomScreen = ({
       >
         {keepPlayerMounted && (
           <PersistentYouTubePlayer
-            videoId={playbackState.currentVideo}
-            isPlaying={playbackState.isPlaying}
-            currentTime={playbackState.currentTime}
-            onReady={onPlayerReady}
-            onStateChange={onPlayerStateChange}
+             videoId={playbackState.currentVideo}
+             isPlaying={playbackState.isPlaying}
+             currentTime={playbackState.currentTime}
+             onReady={onPlayerReady}
+             onStateChange={handlePlayerStateChange}
           />
         )}
       </div>

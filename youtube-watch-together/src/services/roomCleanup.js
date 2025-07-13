@@ -1,7 +1,7 @@
 import { db, ref, get, remove } from './firebase';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
-const CLEANUP_INTERVAL = 60 * 60 * 1000; // Check every hour
+const CLEANUP_INTERVAL = 1 * 60 * 60 * 1000; // Check every hour
 const ROOM_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
 export const startRoomCleanupService = () => {
