@@ -6,9 +6,9 @@ import { searchYouTubeVideos } from './services/youtubeApi';
 import { useRoom } from './hooks/useRoom';
 import { useVoiceChat } from './hooks/useVoiceChat';
 import { useYouTubePlayer } from './hooks/useYouTubePlayer';
-import { startRoomCleanupService } from './services/roomCleanup';
 import { ref, set, get } from 'firebase/database';
-import { db } from './services/firebase'; // assuming you forgot to include this
+import { db } from './services/firebase'; 
+import { startRoomCleanupService, stopRoomCleanupService } from './services/roomCleanup';
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
@@ -47,7 +47,15 @@ function App() {
   } = useRoom(roomCode, userId, username);
 
   const { startSpeaking, stopSpeaking } = useVoiceChat(roomCode, userId, users);
-
+   useEffect(() => {
+    cleanupIntervalRef.current = startRoomCleanupService();
+    
+    return () => {
+      if (cleanupIntervalRef.current) {
+        stopRoomCleanupService(cleanupIntervalRef.current);
+      }
+    };
+  }, []);
   const handlePlayerStateChange = useCallback((state) => {
     if (!window.YT || !window.YT.PlayerState) return;
 
@@ -130,15 +138,6 @@ const joinRoom = useCallback(async () => {
       console.error('Error with push-to-talk:', error);
     }
   }, [startSpeaking, stopSpeaking, updateUserSpeaking]);
-
-  useEffect(() => {
-    cleanupIntervalRef.current = startRoomCleanupService();
-    return () => {
-      if (cleanupIntervalRef.current) {
-        clearInterval(cleanupIntervalRef.current);
-      }
-    };
-  }, []);
 
 useEffect(() => {
   if (!playerReady || !playerRef.current || !window.YT) return;
