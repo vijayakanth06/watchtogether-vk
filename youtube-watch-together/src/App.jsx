@@ -148,13 +148,26 @@ const joinRoom = useCallback(async () => {
       loadVideo(playbackState.currentVideo);
     }
 
-    if (playbackState.isPlaying) {
-      playVideo();
-    } else {
-      pauseVideo();
-    }
+    if (playerReady && playerRef.current) {
+  const player = playerRef.current;
 
+  const currentVideoId = player.getVideoData()?.video_id;
+  if (playbackState.currentVideo && currentVideoId !== playbackState.currentVideo) {
+    loadVideo(playbackState.currentVideo);
+  }
+
+  const currentTimeInPlayer = player.getCurrentTime();
+  if (Math.abs(currentTimeInPlayer - playbackState.currentTime) > 2) {
     seekTo(playbackState.currentTime);
+  }
+
+  if (playbackState.isPlaying) {
+    playVideo();
+  } else {
+    pauseVideo();
+  }
+}
+
   }, [playbackState, playerReady, loadVideo, playVideo, pauseVideo, seekTo, playerRef]);
 
   const resetApp = useCallback(() => {
@@ -207,6 +220,7 @@ const joinRoom = useCallback(async () => {
           onPlayerReady={handleReady}
           onPlayerStateChange={handlePlayerStateChange}
           onLeaveRoom={leaveRoom}
+          removeFromQueue={removeFromQueue}
         />
       )}
     </ErrorBoundary>

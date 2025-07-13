@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { YouTubePlayer } from './YouTubePlayer';
 import { VideoSearch } from './VideoSearch';
 import { VideoQueue } from './VideoQueue';
@@ -14,7 +14,7 @@ export const RoomScreen = ({
   users,
   searchResults,
   error,
-  message, 
+  message,
   onSearchChange,
   updatePlaybackState,
   onSearchSubmit,
@@ -24,12 +24,12 @@ export const RoomScreen = ({
   onPushToTalk,
   onPlayerReady,
   onPlayerStateChange,
-  onLeaveRoom
-})  => {
+  onLeaveRoom,
+  removeFromQueue
+}) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeTab, setActiveTab] = useState('queue');
   const chatEndRef = useRef(null);
-  
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -42,24 +42,23 @@ export const RoomScreen = ({
       e.preventDefault();
     }
   };
-
+  
   return (
     <div>
       <div>
         <h2>Room: {roomCode}</h2>
         <button onClick={onLeaveRoom}>Leave Room</button>
       </div>
-      
+
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <div>
-        <YouTubePlayer
-          videoId={playbackState.currentVideo}
-          isPlaying={playbackState.isPlaying}
-          currentTime={playbackState.currentTime}
-          onReady={onPlayerReady}
-          onStateChange={onPlayerStateChange}
-        />
+      <div><YouTubePlayer
+                videoId={playbackState.currentVideo}
+                isPlaying={playbackState.isPlaying}
+                currentTime={playbackState.currentTime}
+                onReady={onPlayerReady}
+                onStateChange={onPlayerStateChange}
+            />
       </div>
 
       <div>
@@ -79,29 +78,32 @@ export const RoomScreen = ({
         )}
 
         {activeTab === 'queue' && (
-          <VideoQueue 
-  videos={videoQueue}
-  currentVideo={playbackState.currentVideo}
-  onSelectVideo={(videoId) => updatePlaybackState({
-    currentVideo: videoId,
-    isPlaying: true,
-    currentTime: 0
-  })}
-  onDeleteVideo={(videoId) => {
-    setVideoQueue(prev => prev.filter(video => video.id !== videoId));
-    
-    // Optional: if the deleted video is currently playing, stop it or skip to next
-    if (playbackState.currentVideo === videoId) {
-      const nextVideo = videoQueue.find(v => v.id !== videoId);
-      updatePlaybackState({
-        currentVideo: nextVideo?.id || null,
-        isPlaying: false,
-        currentTime: 0
-      });
-    }
-  }}
-/>
+          <VideoQueue
+            videos={videoQueue}
+            currentVideo={playbackState.currentVideo}
+            onSelectVideo={(videoId) => {
+              if (videoId !== playbackState.currentVideo) {
+                updatePlaybackState({
+                  currentVideo: videoId,
+                  isPlaying: true,
+                  currentTime: 0
+                });
+              }
+            }}
+            onDeleteVideo={(videoId) => {
+              removeFromQueue(videoId);
 
+              // If the deleted video is currently playing, skip to next
+              if (playbackState.currentVideo === videoId) {
+                const nextVideo = videoQueue.find(v => v.id !== videoId);
+                updatePlaybackState({
+                  currentVideo: nextVideo?.id || null,
+                  isPlaying: !!nextVideo,
+                  currentTime: 0
+                });
+              }
+            }}
+          />
         )}
 
         {activeTab === 'chat' && (

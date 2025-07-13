@@ -11,6 +11,14 @@ import {
   onDisconnect, 
   off 
 } from '../services/firebase';
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
 
 export const useRoom = (roomCode, userId, username) => {
   const [state, setState] = useState({
@@ -172,20 +180,20 @@ export const useRoom = (roomCode, userId, username) => {
     }
   }, [roomCode, username, handleError]);
 
-  const updatePlaybackState = useCallback(async (newState) => {
-    const now = Date.now();
-    if (now - lastPlaybackUpdate.current < 500) return;
-    lastPlaybackUpdate.current = now;
-    
-    try {
-      await update(ref(db, `rooms/${roomCode}/state`), {
-        ...newState,
-        lastUpdated: now
-      });
-    } catch (error) {
-      handleError(error);
-    }
-  }, [roomCode, handleError]);
+const updatePlaybackState = useCallback(debounce(async (newState) => {
+  const now = Date.now();
+  if (now - lastPlaybackUpdate.current < 500) return;
+  lastPlaybackUpdate.current = now;
+  
+  try {
+    await update(ref(db, `rooms/${roomCode}/state`), {
+      ...newState,
+      lastUpdated: now
+    });
+  } catch (error) {
+    handleError(error);
+  }
+}, 500), [roomCode, handleError]);
 
   const updateUserSpeaking = useCallback(async (isSpeaking) => {
     try {

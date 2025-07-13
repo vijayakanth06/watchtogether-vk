@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import YouTube from 'react-youtube';
 
 export const YouTubePlayer = ({
@@ -11,60 +11,78 @@ export const YouTubePlayer = ({
 }) => {
   const playerRef = useRef(null);
   const [hasError, setHasError] = useState(false);
-  const lastSyncTimeRef = useRef(0);
+  const [playerReady, setPlayerReady] = useState(false);
+  const lastSyncRef = useRef({
+    videoId: null,
+    isPlaying: false,
+    currentTime: 0,
+    timestamp: 0
+  });
 
-  const handleReady = (event) => {
-    playerRef.current = event.target; // real YT player instance
+  // Memoized event handlers
+  const handleReady = useCallback((event) => {
+    playerRef.current = event.target;
+    setPlayerReady(true);
     if (onReady) onReady(event);
-  };
+  }, [onReady]);
 
-  
-
-  const handleError = (error) => {
+  const handleError = useCallback((error) => {
     console.error('YouTube Player Error:', error);
     setHasError(true);
     if (onError) onError(error);
+  }, [onError]);
+
+ useEffect(() => {
+  if (!playerReady || !playerRef.current) return;
+
+  const player = playerRef.current;
+  const lastSync = lastSyncRef.current;
+
+  // If nothing changed, don't sync
+  const videoChanged = videoId !== lastSync.videoId;
+  const timeChanged = Math.abs(currentTime - lastSync.currentTime) > 2;
+  const playbackChanged = isPlaying !== lastSync.isPlaying;
+
+  const sync = async () => {
+    try {
+      if (videoChanged) {
+        await player.cueVideoById({ videoId, startSeconds: currentTime });
+        lastSync.videoId = videoId;
+        lastSync.currentTime = currentTime;
+        lastSync.isPlaying = isPlaying;
+        if (isPlaying) await player.playVideo();
+        return;
+      }
+
+      if (timeChanged) {
+        await player.seekTo(currentTime, true);
+        lastSync.currentTime = currentTime;
+      }
+
+      if (playbackChanged) {
+        if (isPlaying) await player.playVideo();
+        else await player.pauseVideo();
+        lastSync.isPlaying = isPlaying;
+      }
+    } catch (err) {
+      console.error('YouTube sync error:', err);
+    }
   };
 
-  useEffect(() => {
-    const player = playerRef.current;
-    if (!player || !videoId || hasError) return;
+  sync();
+}, [videoId, isPlaying, currentTime, playerReady]);
 
-    const syncState = async () => {
-      try {
-        const state = await player.getPlayerState();
-        const time = await player.getCurrentTime();
-
-        if (isPlaying && state !== 1) {
-          player.playVideo();
-        } else if (!isPlaying && state === 1) {
-          player.pauseVideo();
-        }
-
-        if (Math.abs(time - currentTime) > 1) {
-          player.seekTo(currentTime, true);
-        }
-      } catch (err) {
-        console.error('Sync error:', err);
-      }
-    };
-
-    const interval = setInterval(syncState, 500);
-    return () => clearInterval(interval);
-  }, [videoId, isPlaying, currentTime, hasError]);
 
   if (!videoId || hasError) {
     return (
-      <div
-        style={{
-          width: '640px',
-          height: '360px',
-          backgroundColor: '#f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <div style={{
+        width: '640px',
+        height: '360px',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         {hasError ? 'Error loading video' : 'No video selected'}
       </div>
     );
@@ -77,10 +95,11 @@ export const YouTubePlayer = ({
         height: '360',
         width: '640',
         playerVars: {
-          autoplay: 1,
+          autoplay: 0, // Let our sync logic handle autoplay
           modestbranding: 1,
           rel: 0,
-        },
+          enablejsapi: 1
+        }
       }}
       onReady={handleReady}
       onStateChange={onStateChange}
