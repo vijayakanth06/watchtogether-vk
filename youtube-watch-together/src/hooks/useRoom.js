@@ -1,16 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  db, 
-  ref, 
-  get, 
-  set, 
-  onValue, 
-  push, 
-  remove, 
-  update, 
-  onDisconnect, 
-  off 
-} from '../services/firebase';
+import { db, ref, get, set, onValue, push, remove, update, onDisconnect } from '../services/firebase';
+
 function debounce(func, wait) {
   let timeout;
   return function(...args) {
@@ -21,126 +11,114 @@ function debounce(func, wait) {
 }
 
 export const useRoom = (roomCode, userId, username) => {
-  const [state, setState] = useState({
-    videoQueue: [],
-    chatMessages: [],
-    playbackState: {
-      currentVideo: null,
-      isPlaying: false,
-      currentTime: 0,
-      lastUpdated: 0
-    },
-    users: {},
-    error: null,
-    loading: true
+  const [videoQueue, setVideoQueue] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [users, setUsers] = useState({});
+  const [playbackState, setPlaybackState] = useState({
+    currentVideo: null,
+    isPlaying: false,
+    currentTime: 0,
+    lastUpdated: 0
   });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const lastPlaybackUpdate = useRef(0);
 
-  const updateState = useCallback((updates) => {
-    setState(prev => ({ ...prev, ...updates }));
-  }, []);
-
   const handleError = useCallback((error) => {
     console.error('Room Error:', error);
-    updateState({ 
-      error: error.message || 'An error occurred. Please try again.' 
-    });
-  }, [updateState]);
+    setError(error.message || 'An error occurred. Please try again.');
+  }, []);
 
   useEffect(() => {
     if (!roomCode || !userId || !username) return;
 
+    let presenceUnsub = null;
+    let queueUnsub = null;
+    let chatUnsub = null;
+    let stateUnsub = null;
+    let usersUnsub = null;
+
     const initializeRoom = async () => {
       try {
-        // Verify room exists
         const roomRef = ref(db, `rooms/${roomCode}`);
         const roomSnapshot = await get(roomRef);
         if (!roomSnapshot.exists()) {
           throw new Error('Room does not exist');
         }
 
-        // Add user to room
-        await set(ref(db, `rooms/${roomCode}/users/${userId}`), {
+        // Add user presence
+        const userRef = ref(db, `rooms/${roomCode}/users/${userId}`);
+        await set(userRef, {
           name: username,
           isSpeaking: false,
           joinedAt: Date.now()
         });
 
         // Setup presence detection
-        const userRef = ref(db, `rooms/${roomCode}/users/${userId}`);
         const presenceRef = ref(db, '.info/connected');
-        
-        const presenceUnsub = onValue(presenceRef, (snapshot) => {
+        presenceUnsub = onValue(presenceRef, (snapshot) => {
           if (snapshot.val() === true) {
             onDisconnect(userRef).remove();
           }
         });
 
-        // Setup listeners
+        // Listeners
         const setupListener = (path, updateFn) => {
           return onValue(ref(db, `rooms/${roomCode}/${path}`), (snapshot) => {
             updateFn(snapshot.val() || {});
           }, handleError);
         };
 
-        const queueUnsub = setupListener('queue', (data) => {
-          updateState({
-            videoQueue: Object.entries(data).map(([id, video]) => ({ id, ...video }))
-          });
+        queueUnsub = setupListener('queue', (data) => {
+          setVideoQueue(Object.entries(data).map(([id, video]) => ({ id, ...video })));
         });
 
-        const chatUnsub = setupListener('chat', (data) => {
-          updateState({
-            chatMessages: Object.entries(data)
-              .map(([id, msg]) => ({ id, ...msg }))
-              .sort((a, b) => a.timestamp - b.timestamp)
-          });
+        chatUnsub = setupListener('chat', (data) => {
+          setChatMessages(Object.entries(data)
+            .map(([id, msg]) => ({ id, ...msg }))
+            .sort((a, b) => a.timestamp - b.timestamp)
+          );
         });
 
-        const stateUnsub = setupListener('state', (data) => {
+        stateUnsub = setupListener('state', (data) => {
           const newState = data || {
             currentVideo: null,
             isPlaying: false,
             currentTime: 0,
             lastUpdated: 0
           };
-          
-          if (newState.lastUpdated > state.playbackState.lastUpdated) {
-            updateState({
-              playbackState: newState
-            });
-          }
-        });
 
-        const usersUnsub = setupListener('users', (data) => {
-          updateState({
-            users: data
+          setPlaybackState(prev => {
+            if (newState.lastUpdated > prev.lastUpdated) {
+              return newState;
+            }
+            return prev;
           });
         });
 
-        updateState({ loading: false });
+        usersUnsub = setupListener('users', (data) => {
+          setUsers(data);
+        });
 
-        return () => {
-          presenceUnsub();
-          queueUnsub();
-          chatUnsub();
-          stateUnsub();
-          usersUnsub();
-          remove(userRef).catch(handleError);
-        };
+        setLoading(false);
       } catch (error) {
         handleError(error);
-        updateState({ loading: false });
+        setLoading(false);
       }
     };
 
     initializeRoom();
 
     return () => {
-      // Cleanup will be handled by the unsubscribe functions
+      if (presenceUnsub) presenceUnsub();
+      if (queueUnsub) queueUnsub();
+      if (chatUnsub) chatUnsub();
+      if (stateUnsub) stateUnsub();
+      if (usersUnsub) usersUnsub();
+      remove(ref(db, `rooms/${roomCode}/users/${userId}`)).catch(handleError);
     };
-  }, [roomCode, userId, username, updateState, handleError, state.playbackState.lastUpdated]);
+  }, [roomCode, userId, username, handleError]);
 
   const addToQueue = useCallback(async (video) => {
     try {
@@ -152,9 +130,6 @@ export const useRoom = (roomCode, userId, username) => {
         addedBy: username,
         addedAt: Date.now()
       });
-      updateState((prev) => ({
-        videoQueue: [...prev.videoQueue, { id: video.id, ...video }]
-      }));
     } catch (error) {
       handleError(error);
     }
@@ -182,18 +157,34 @@ export const useRoom = (roomCode, userId, username) => {
 
 const updatePlaybackState = useCallback(debounce(async (newState) => {
   const now = Date.now();
-  if (now - lastPlaybackUpdate.current < 500) return;
-  lastPlaybackUpdate.current = now;
+  if (now - lastPlaybackUpdate.current < 1000) return;
   
+  setPlaybackState(prev => {
+    // Only update if video changed or time changed significantly
+    const shouldUpdate = 
+      (newState.currentVideo && prev.currentVideo !== newState.currentVideo) ||
+      Math.abs(prev.currentTime - (newState.currentTime || 0)) > 2;
+    
+    if (!shouldUpdate) return prev;
+    
+    lastPlaybackUpdate.current = now;
+    return {
+      ...prev,
+      ...newState,
+      lastUpdated: now
+    };
+  });
+
   try {
     await update(ref(db, `rooms/${roomCode}/state`), {
-      ...newState,
+      currentVideo: newState.currentVideo || null,
+      currentTime: newState.currentTime || 0,
       lastUpdated: now
     });
   } catch (error) {
     handleError(error);
   }
-}, 500), [roomCode, handleError]);
+}, 1000), [roomCode, handleError]);
 
   const updateUserSpeaking = useCallback(async (isSpeaking) => {
     try {
@@ -204,7 +195,12 @@ const updatePlaybackState = useCallback(debounce(async (newState) => {
   }, [roomCode, userId, handleError]);
 
   return {
-    ...state,
+    videoQueue,
+    chatMessages,
+    playbackState,
+    users,
+    error,
+    loading,
     addToQueue,
     removeFromQueue,
     sendMessage,

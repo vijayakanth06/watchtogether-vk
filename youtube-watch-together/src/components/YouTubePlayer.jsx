@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import YouTube from 'react-youtube';
 
-export const YouTubePlayer = ({
+const YouTubePlayerComponent = ({
   videoId,
   isPlaying,
   currentTime,
@@ -10,83 +10,54 @@ export const YouTubePlayer = ({
   onError
 }) => {
   const playerRef = useRef(null);
-  const [hasError, setHasError] = useState(false);
-  const [playerReady, setPlayerReady] = useState(false);
-  const lastSyncRef = useRef({
-    videoId: null,
-    isPlaying: false,
-    currentTime: 0,
-    timestamp: 0
-  });
+  const [internalReady, setInternalReady] = useState(false);
+  const prevVideoId = useRef(null);
+  const prevIsPlaying = useRef(isPlaying);
+  const prevCurrentTime = useRef(currentTime);
 
-  // Memoized event handlers
   const handleReady = useCallback((event) => {
     playerRef.current = event.target;
-    setPlayerReady(true);
-    if (onReady) onReady(event);
-  }, [onReady]);
+    setInternalReady(true);
+    prevVideoId.current = videoId;
+    prevIsPlaying.current = isPlaying;
+    prevCurrentTime.current = currentTime;
+    onReady?.(event);
+  }, [videoId, isPlaying, currentTime, onReady]);
 
-  const handleError = useCallback((error) => {
-    console.error('YouTube Player Error:', error);
-    setHasError(true);
-    if (onError) onError(error);
-  }, [onError]);
+  useEffect(() => {
+    if (!internalReady || !playerRef.current) return;
 
- useEffect(() => {
-  if (!playerReady || !playerRef.current) return;
-
-  const player = playerRef.current;
-  const lastSync = lastSyncRef.current;
-
-  // If nothing changed, don't sync
-  const videoChanged = videoId !== lastSync.videoId;
-  const timeChanged = Math.abs(currentTime - lastSync.currentTime) > 2;
-  const playbackChanged = isPlaying !== lastSync.isPlaying;
-
-  const sync = async () => {
+    const player = playerRef.current;
+    
     try {
-      if (videoChanged) {
-        await player.cueVideoById({ videoId, startSeconds: currentTime });
-        lastSync.videoId = videoId;
-        lastSync.currentTime = currentTime;
-        lastSync.isPlaying = isPlaying;
-        if (isPlaying) await player.playVideo();
+      // Only handle video changes
+      if (videoId && videoId !== prevVideoId.current) {
+        prevVideoId.current = videoId;
+        player.loadVideoById({
+          videoId: videoId,
+          startSeconds: currentTime || 0
+        });
+        if (isPlaying) {
+          player.playVideo();
+        }
         return;
       }
 
-      if (timeChanged) {
-        await player.seekTo(currentTime, true);
-        lastSync.currentTime = currentTime;
+      // Handle time changes (only if significant)
+      if (Math.abs(currentTime - prevCurrentTime.current) > 2) {
+        prevCurrentTime.current = currentTime;
+        player.seekTo(currentTime, true);
       }
 
-      if (playbackChanged) {
-        if (isPlaying) await player.playVideo();
-        else await player.pauseVideo();
-        lastSync.isPlaying = isPlaying;
+      // Handle play/pause changes
+      if (isPlaying !== prevIsPlaying.current) {
+        prevIsPlaying.current = isPlaying;
+        isPlaying ? player.playVideo() : player.pauseVideo();
       }
     } catch (err) {
-      console.error('YouTube sync error:', err);
+      console.error("YouTube Player sync error:", err);
     }
-  };
-
-  sync();
-}, [videoId, isPlaying, currentTime, playerReady]);
-
-
-  if (!videoId || hasError) {
-    return (
-      <div style={{
-        width: '640px',
-        height: '360px',
-        backgroundColor: '#f0f0f0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        {hasError ? 'Error loading video' : 'No video selected'}
-      </div>
-    );
-  }
+  }, [videoId, currentTime, isPlaying, internalReady]);
 
   return (
     <YouTube
@@ -95,7 +66,7 @@ export const YouTubePlayer = ({
         height: '360',
         width: '640',
         playerVars: {
-          autoplay: 0, // Let our sync logic handle autoplay
+          autoplay: 0,
           modestbranding: 1,
           rel: 0,
           enablejsapi: 1
@@ -103,7 +74,19 @@ export const YouTubePlayer = ({
       }}
       onReady={handleReady}
       onStateChange={onStateChange}
-      onError={handleError}
+      onError={onError}
     />
   );
 };
+
+// Custom comparison function for React.memo
+const areEqual = (prevProps, nextProps) => {
+  // Only re-render if these specific props change
+  return (
+    prevProps.videoId === nextProps.videoId &&
+    prevProps.isPlaying === nextProps.isPlaying &&
+    Math.abs(prevProps.currentTime - nextProps.currentTime) < 2
+  );
+};
+
+export const YouTubePlayer = React.memo(YouTubePlayerComponent, areEqual);

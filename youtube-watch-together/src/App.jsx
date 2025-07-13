@@ -140,35 +140,23 @@ const joinRoom = useCallback(async () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!playerReady) return;
+useEffect(() => {
+  if (!playerReady || !playerRef.current || !window.YT) return;
 
-    if (playbackState.currentVideo &&
-        playerRef.current?.getVideoData()?.video_id !== playbackState.currentVideo) {
-      loadVideo(playbackState.currentVideo);
-    }
-
-    if (playerReady && playerRef.current) {
   const player = playerRef.current;
-
   const currentVideoId = player.getVideoData()?.video_id;
+  
+  // Only sync if there's a meaningful difference
   if (playbackState.currentVideo && currentVideoId !== playbackState.currentVideo) {
     loadVideo(playbackState.currentVideo);
+    return;
   }
 
   const currentTimeInPlayer = player.getCurrentTime();
   if (Math.abs(currentTimeInPlayer - playbackState.currentTime) > 2) {
     seekTo(playbackState.currentTime);
   }
-
-  if (playbackState.isPlaying) {
-    playVideo();
-  } else {
-    pauseVideo();
-  }
-}
-
-  }, [playbackState, playerReady, loadVideo, playVideo, pauseVideo, seekTo, playerRef]);
+}, [playbackState.currentVideo, playbackState.currentTime, playerReady, loadVideo, seekTo]);
 
   const resetApp = useCallback(() => {
     setAppError(null);
