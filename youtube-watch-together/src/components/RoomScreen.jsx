@@ -168,6 +168,7 @@ export const RoomScreen = ({
               onKeyDown={handleKeyDown}
               onSendMessage={onSendMessage}
               chatEndRef={chatEndRef}
+              users={users} 
             />
           )}
         </div>
