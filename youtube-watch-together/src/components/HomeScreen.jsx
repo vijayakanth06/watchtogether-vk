@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState ,useEffect} from 'react';
 
 export const HomeScreen = ({ 
   onCreateRoom, 
@@ -29,6 +29,18 @@ export const HomeScreen = ({
       setIsJoining(false);
     }
   };
+
+  useEffect(() => {
+    const sessionStr = localStorage.getItem('yt_watch_together_session');
+    if (sessionStr) {
+      try {
+        const session = JSON.parse(sessionStr);
+        setUsername(session.username || '');
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+  }, [setUsername]);
 
   return (
     <div>

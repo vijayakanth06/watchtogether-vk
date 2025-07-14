@@ -31,6 +31,28 @@ export const RoomScreen = ({
   const chatEndRef = useRef(null);
   const playerContainerRef = useRef(null);
 
+    useEffect(() => {
+    const checkSession = () => {
+      const sessionStr = localStorage.getItem('yt_watch_together_session');
+      if (!sessionStr) {
+        onLeaveRoom();
+        return;
+      }
+      
+      try {
+        const session = JSON.parse(sessionStr);
+        if (Date.now() > session.expiresAt) {
+          onLeaveRoom();
+        }
+      } catch (e) {
+        onLeaveRoom();
+      }
+    };
+
+    const interval = setInterval(checkSession, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [onLeaveRoom]);
+
   // Keep player mounted at all times
   const [keepPlayerMounted] = useState(true);
 

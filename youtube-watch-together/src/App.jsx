@@ -10,6 +10,36 @@ import { ref, set, get } from 'firebase/database';
 import { db } from './services/firebase'; 
 import { startRoomCleanupService, stopRoomCleanupService } from './services/roomCleanup';
 
+// Session management utilities
+const SESSION_KEY = 'yt_watch_together_session';
+const SESSION_EXPIRY_HOURS = 1;
+
+const saveSession = (roomCode, username, userId) => {
+  const session = {
+    roomCode,
+    username,
+    userId,
+    expiresAt: Date.now() + (SESSION_EXPIRY_HOURS * 60 * 60 * 1000)
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+};
+
+const loadSession = () => {
+  const sessionStr = localStorage.getItem(SESSION_KEY);
+  if (!sessionStr) return null;
+  
+  const session = JSON.parse(sessionStr);
+  if (Date.now() > session.expiresAt) {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+  return session;
+};
+
+const clearSession = () => {
+  localStorage.removeItem(SESSION_KEY);
+};
+
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
     <div role="alert">
@@ -47,7 +77,17 @@ function App() {
   } = useRoom(roomCode, userId, username);
 
   const { startSpeaking, stopSpeaking } = useVoiceChat(roomCode, userId, users);
-   useEffect(() => {
+
+  // Load session and initialize cleanup service
+  useEffect(() => {
+    const session = loadSession();
+    if (session) {
+      setRoomCode(session.roomCode);
+      setUsername(session.username);
+      setHasJoined(true);
+      setScreen('room');
+    }
+
     cleanupIntervalRef.current = startRoomCleanupService();
     
     return () => {
@@ -56,6 +96,7 @@ function App() {
       }
     };
   }, []);
+
   const handlePlayerStateChange = useCallback((state) => {
     if (!window.YT || !window.YT.PlayerState) return;
 
@@ -87,26 +128,27 @@ function App() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }, []);
 
-const createRoom = useCallback(async () => {
-  const newRoomCode = generateRoomCode();
-  await set(ref(db, `rooms/${newRoomCode}`), {
-    createdAt: Date.now(),
-    createdBy: username,
-  });
-  setRoomCode(newRoomCode);
-  setHasJoined(true);
-  setScreen('room');
-}, [generateRoomCode, username]);
+  const createRoom = useCallback(async () => {
+    const newRoomCode = generateRoomCode();
+    await set(ref(db, `rooms/${newRoomCode}`), {
+      createdAt: Date.now(),
+      createdBy: username,
+    });
+    setRoomCode(newRoomCode);
+    setHasJoined(true);
+    setScreen('room');
+    saveSession(newRoomCode, username, userId);
+  }, [generateRoomCode, username, userId]);
 
-const joinRoom = useCallback(async () => {
-  const roomRef = ref(db, `rooms/${roomCode}`);
-  const roomSnapshot = await get(roomRef);
-  if (!roomSnapshot.exists()) throw new Error('Room not found');
+  const joinRoom = useCallback(async () => {
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    const roomSnapshot = await get(roomRef);
+    if (!roomSnapshot.exists()) throw new Error('Room not found');
 
-  setHasJoined(true);
-  setScreen('room');
-}, [roomCode]);
-
+    setHasJoined(true);
+    setScreen('room');
+    saveSession(roomCode, username, userId);
+  }, [roomCode, username, userId]);
 
   const leaveRoom = useCallback(() => {
     setScreen('home');
@@ -114,6 +156,7 @@ const joinRoom = useCallback(async () => {
     setSearchQuery('');
     setSearchResults([]);
     setMessage('');
+    clearSession();
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -139,23 +182,23 @@ const joinRoom = useCallback(async () => {
     }
   }, [startSpeaking, stopSpeaking, updateUserSpeaking]);
 
-useEffect(() => {
-  if (!playerReady || !playerRef.current || !window.YT) return;
+  useEffect(() => {
+    if (!playerReady || !playerRef.current || !window.YT) return;
 
-  const player = playerRef.current;
-  const currentVideoId = player.getVideoData()?.video_id;
-  
-  // Only sync if there's a meaningful difference
-  if (playbackState.currentVideo && currentVideoId !== playbackState.currentVideo) {
-    loadVideo(playbackState.currentVideo);
-    return;
-  }
+    const player = playerRef.current;
+    const currentVideoId = player.getVideoData()?.video_id;
+    
+    // Only sync if there's a meaningful difference
+    if (playbackState.currentVideo && currentVideoId !== playbackState.currentVideo) {
+      loadVideo(playbackState.currentVideo);
+      return;
+    }
 
-  const currentTimeInPlayer = player.getCurrentTime();
-  if (Math.abs(currentTimeInPlayer - playbackState.currentTime) > 2) {
-    seekTo(playbackState.currentTime);
-  }
-}, [playbackState.currentVideo, playbackState.currentTime, playerReady, loadVideo, seekTo]);
+    const currentTimeInPlayer = player.getCurrentTime();
+    if (Math.abs(currentTimeInPlayer - playbackState.currentTime) > 2) {
+      seekTo(playbackState.currentTime);
+    }
+  }, [playbackState.currentVideo, playbackState.currentTime, playerReady, loadVideo, seekTo]);
 
   const resetApp = useCallback(() => {
     setAppError(null);

@@ -181,30 +181,33 @@ export const useRoom = (roomCode, userId, username) => {
       handleError(error);
     }
   }, 1000), [roomCode, handleError]);
-  
-  const addToQueue = useCallback(async (video) => {
-    try {
-      const videoRef = ref(db, `rooms/${roomCode}/queue/${video.id}`);
-      await set(videoRef, {
-        title: video.title,
-        url: `https://www.youtube.com/watch?v=${video.id}`,
-        thumbnail: video.thumbnail,
-        addedBy: username,
-        addedAt: Date.now()
-      });
 
-      // If queue was empty, start playing this video
-      if (videoQueue.length === 0 && !playbackState.currentVideo) {
-        await updatePlaybackState({
-          currentVideo: video.id,
-          isPlaying: true,
-          currentTime: 0
-        });
-      }
-    } catch (error) {
-      handleError(error);
+const addToQueue = useCallback(async (video) => {
+  try {
+    const videoRef = ref(db, `rooms/${roomCode}/queue/${video.id}`);
+    await set(videoRef, {
+      title: video.title,
+      url: `https://www.youtube.com/watch?v=${video.id}`,
+      thumbnail: video.thumbnail,
+      addedBy: username,
+      addedAt: Date.now()
+    });
+
+    // If queue was empty, start playing this video
+    if (videoQueue.length === 0 && !playbackState.currentVideo) {
+      await updatePlaybackState({
+        currentVideo: video.id,
+        isPlaying: true,
+        currentTime: 0
+      });
     }
-  }, [roomCode, username, videoQueue, playbackState.currentVideo, updatePlaybackState, handleError]);
+    
+    return true; // Success
+  } catch (error) {
+    console.error('Failed to add video:', error);
+    throw error; // Propagate the error
+  }
+}, [roomCode, username, videoQueue, playbackState.currentVideo, updatePlaybackState]);
 
   const removeFromQueue = useCallback(async (videoId) => {
     try {
