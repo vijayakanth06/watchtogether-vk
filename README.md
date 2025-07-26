@@ -38,6 +38,7 @@ A real-time collaborative YouTube watch party app built with **React (Vite + JSX
 ```bash
 git clone https://github.com/your-username/watchtogether.git
 cd watchtogether
+cd youtube-watch-together
 ```
 
 ### 2. 📦 Install dependencies
