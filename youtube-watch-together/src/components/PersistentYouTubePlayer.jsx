@@ -82,7 +82,7 @@ export const PersistentYouTubePlayer = React.memo(({
         key={`player-${videoId || 'empty'}`} // Only remount when videoId changes
         videoId={videoId}
         opts={{
-          height: '360',
+          height: '650',
           width: '640',
           playerVars: {
             autoplay: isPlaying ? 1 : 0,
