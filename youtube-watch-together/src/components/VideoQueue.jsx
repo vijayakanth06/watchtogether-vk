@@ -1,58 +1,45 @@
+/*
+* =================================================================
+* components/VideoQueue.jsx
+*
+* Styled to work as a list within the sidebar.
+* Added clear visual distinction for the currently playing video.
+* =================================================================
+*/
 export const VideoQueue = ({ videos, currentVideo, onSelectVideo, onDeleteVideo }) => {
-  if (videos.length === 0) {
-    return <p>Queue is empty. Add some videos!</p>;
+  if (!videos || videos.length === 0) {
+    return (
+        <div className="panel-content empty-queue">
+            <p>The queue is empty.</p>
+            <p>Use the 'Search' tab to find and add videos!</p>
+        </div>
+    );
   }
 
   return (
-    <ul style={{ padding: 0, listStyle: 'none' }}>
+    <ul className="video-queue panel-content">
       {videos.map((video) => (
         <li 
           key={video.id}
-          style={{
-            cursor: 'pointer',
-            fontWeight: video.id === currentVideo ? 'bold' : 'normal',
-            opacity: video.id === currentVideo ? 1 : 0.8,
-            padding: '8px',
-            borderBottom: '1px solid #ccc',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
+          className={`video-list-item ${video.id === currentVideo ? 'active' : ''}`}
         >
-          <div 
-            onClick={() => onSelectVideo(video.id)}
-            style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}
-          >
+          <div className="item-main" onClick={() => onSelectVideo(video.id)}>
             <img 
               src={video.thumbnail} 
               alt={video.title} 
-              width="80" 
-              height="60" 
               loading="lazy"
-              style={{ marginRight: '10px' }}
             />
-            <div>
-              <h4 style={{ margin: 0 }}>{video.title}</h4>
-              <p style={{ margin: 0, fontSize: '0.8em', color: '#555' }}>
-                Added by: {video.addedBy}
-              </p>
+            <div className="info">
+              <h4>{video.title}</h4>
+              <p>Added by: {video.addedBy}</p>
             </div>
           </div>
-
-          {/* Delete Button */}
           <button 
             onClick={() => onDeleteVideo(video.id)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#c00',
-              cursor: 'pointer',
-              marginLeft: '10px',
-              fontSize: '1.2em'
-            }}
-            title="Delete video"
+            className="delete-button"
+            title="Remove from queue"
           >
-            <h2>❌</h2>
+            &times;
           </button>
         </li>
       ))}

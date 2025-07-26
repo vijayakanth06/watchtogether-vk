@@ -7,8 +7,9 @@ import { useRoom } from './hooks/useRoom';
 import { useVoiceChat } from './hooks/useVoiceChat';
 import { useYouTubePlayer } from './hooks/useYouTubePlayer';
 import { ref, set, get } from 'firebase/database';
-import { db } from './services/firebase'; 
+import { db } from './services/firebase';
 import { startRoomCleanupService, stopRoomCleanupService } from './services/roomCleanup';
+import './App.css';
 
 // Session management utilities
 const SESSION_KEY = 'yt_watch_together_session';
@@ -27,7 +28,7 @@ const saveSession = (roomCode, username, userId) => {
 const loadSession = () => {
   const sessionStr = localStorage.getItem(SESSION_KEY);
   if (!sessionStr) return null;
-  
+
   const session = JSON.parse(sessionStr);
   if (Date.now() > session.expiresAt) {
     localStorage.removeItem(SESSION_KEY);
@@ -42,7 +43,7 @@ const clearSession = () => {
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <div role="alert">
+    <div role="alert" className="error-fallback">
       <h2>Something went wrong</h2>
       <pre>{error.message}</pre>
       <button onClick={resetErrorBoundary}>Try again</button>
@@ -78,7 +79,6 @@ function App() {
 
   const { startSpeaking, stopSpeaking } = useVoiceChat(roomCode, userId, users);
 
-  // Load session and initialize cleanup service
   useEffect(() => {
     const session = loadSession();
     if (session) {
@@ -89,7 +89,7 @@ function App() {
     }
 
     cleanupIntervalRef.current = startRoomCleanupService();
-    
+
     return () => {
       if (cleanupIntervalRef.current) {
         stopRoomCleanupService(cleanupIntervalRef.current);
@@ -97,31 +97,22 @@ function App() {
     };
   }, []);
 
-  const handlePlayerStateChange = useCallback((state) => {
-    if (!window.YT || !window.YT.PlayerState) return;
+    const handlePlayerStateChange = useCallback((state) => {
+        if (!window.YT || !window.YT.PlayerState) return;
 
-    switch (state) {
-      case window.YT.PlayerState.PLAYING:
-        updatePlaybackState({ isPlaying: true });
-        break;
-      case window.YT.PlayerState.PAUSED:
-      case window.YT.PlayerState.ENDED:
-        updatePlaybackState({ isPlaying: false });
-        break;
-      default:
-        break;
-    }
-  }, [updatePlaybackState]);
+        const { PLAYING, PAUSED, ENDED } = window.YT.PlayerState;
+
+        if (state === PLAYING && !playbackState.isPlaying) {
+            updatePlaybackState({ isPlaying: true });
+        } else if ((state === PAUSED || state === ENDED) && playbackState.isPlaying) {
+            updatePlaybackState({ isPlaying: false });
+        }
+    }, [updatePlaybackState, playbackState.isPlaying]);
+
 
   const {
     playerRef,
     handleReady,
-    loadVideo,
-    playVideo,
-    pauseVideo,
-    seekTo,
-    getCurrentTime,
-    playerReady
   } = useYouTubePlayer(playbackState.currentVideo, handlePlayerStateChange);
 
   const generateRoomCode = useCallback(() => {
@@ -129,6 +120,10 @@ function App() {
   }, []);
 
   const createRoom = useCallback(async () => {
+    if (!username.trim()) {
+        setAppError(new Error("Username cannot be empty."));
+        return;
+    }
     const newRoomCode = generateRoomCode();
     await set(ref(db, `rooms/${newRoomCode}`), {
       createdAt: Date.now(),
@@ -141,9 +136,16 @@ function App() {
   }, [generateRoomCode, username, userId]);
 
   const joinRoom = useCallback(async () => {
+    if (!username.trim() || !roomCode.trim()) {
+        setAppError(new Error("Username and Room Code are required."));
+        return;
+    }
     const roomRef = ref(db, `rooms/${roomCode}`);
     const roomSnapshot = await get(roomRef);
-    if (!roomSnapshot.exists()) throw new Error('Room not found');
+    if (!roomSnapshot.exists()) {
+        setAppError(new Error('Room not found'));
+        return;
+    };
 
     setHasJoined(true);
     setScreen('room');
@@ -156,10 +158,12 @@ function App() {
     setSearchQuery('');
     setSearchResults([]);
     setMessage('');
+    setHasJoined(false);
     clearSession();
   }, []);
 
   const handleSearch = useCallback(async () => {
+    if (!searchQuery) return;
     try {
       const results = await searchYouTubeVideos(searchQuery, import.meta.env.VITE_YOUTUBE_API_KEY);
       setSearchResults(results);
@@ -183,31 +187,31 @@ function App() {
   }, [startSpeaking, stopSpeaking, updateUserSpeaking]);
 
   useEffect(() => {
-    if (!playerReady || !playerRef.current || !window.YT) return;
-
-    const player = playerRef.current;
-    const currentVideoId = player.getVideoData()?.video_id;
+    if (!playerRef.current || !playbackState.currentVideo) return;
     
-    // Only sync if there's a meaningful difference
-    if (playbackState.currentVideo && currentVideoId !== playbackState.currentVideo) {
-      loadVideo(playbackState.currentVideo);
-      return;
+    const player = playerRef.current;
+    const playerState = player.getPlayerState();
+
+    // Sync playing state
+    if (playbackState.isPlaying && playerState !== window.YT.PlayerState.PLAYING) {
+        player.playVideo();
+    } else if (!playbackState.isPlaying && playerState === window.YT.PlayerState.PLAYING) {
+        player.pauseVideo();
     }
 
-    const currentTimeInPlayer = player.getCurrentTime();
-    if (Math.abs(currentTimeInPlayer - playbackState.currentTime) > 2) {
-      seekTo(playbackState.currentTime);
+    // Sync time (with a tolerance)
+    const timeDiff = Math.abs(player.getCurrentTime() - playbackState.currentTime);
+    if (timeDiff > 2) {
+        player.seekTo(playbackState.currentTime, true);
     }
-  }, [playbackState.currentVideo, playbackState.currentTime, playerReady, loadVideo, seekTo]);
+
+  }, [playbackState, playerRef]);
+
 
   const resetApp = useCallback(() => {
     setAppError(null);
     leaveRoom();
   }, [leaveRoom]);
-
-  if (appError) {
-    return <ErrorFallback error={appError} resetErrorBoundary={resetApp} />;
-  }
 
   return (
     <ErrorBoundary
@@ -215,44 +219,47 @@ function App() {
       onError={(error) => setAppError(error)}
       onReset={resetApp}
     >
-      {screen === 'home' ? (
-        <HomeScreen
-          onCreateRoom={createRoom}
-          onJoinRoom={joinRoom}
-          roomCode={roomCode}
-          setRoomCode={setRoomCode}
-          username={username}
-          setUsername={setUsername}
-          error={roomError}
-        />
-      ) : (
-        <RoomScreen
-          roomCode={roomCode}
-          username={username}
-          videoQueue={videoQueue}
-          chatMessages={chatMessages}
-          playbackState={playbackState}
-          updatePlaybackState={updatePlaybackState}
-          users={users}
-          searchResults={searchResults}
-          message={message}
-          error={roomError}
-          isSpeaking={users[userId]?.isSpeaking || false}
-          onSearchChange={setSearchQuery}
-          onSearchSubmit={handleSearch}
-          onAddToQueue={addToQueue}
-          onMessageChange={setMessage}
-          onSendMessage={() => {
-            sendMessage(message);
-            setMessage('');
-          }}
-          onPushToTalk={handlePushToTalk}
-          onPlayerReady={handleReady}
-          onPlayerStateChange={handlePlayerStateChange}
-          onLeaveRoom={leaveRoom}
-          removeFromQueue={removeFromQueue}
-        />
-      )}
+      <div className="App">
+        {screen === 'home' ? (
+          <HomeScreen
+            onCreateRoom={createRoom}
+            onJoinRoom={joinRoom}
+            roomCode={roomCode}
+            setRoomCode={setRoomCode}
+            username={username}
+            setUsername={setUsername}
+            error={appError?.message || roomError}
+          />
+        ) : (
+          <RoomScreen
+            roomCode={roomCode}
+            username={username}
+            videoQueue={videoQueue}
+            chatMessages={chatMessages}
+            playbackState={playbackState}
+            updatePlaybackState={updatePlaybackState}
+            users={users}
+            searchResults={searchResults}
+            message={message}
+            error={roomError}
+            onSearchChange={setSearchQuery}
+            onSearchSubmit={handleSearch}
+            onAddToQueue={addToQueue}
+            onMessageChange={setMessage}
+            onSendMessage={() => {
+              if (message.trim()) {
+                sendMessage(message);
+                setMessage('');
+              }
+            }}
+            onPushToTalk={handlePushToTalk}
+            onPlayerReady={handleReady}
+            handlePlayerStateChange={handlePlayerStateChange}
+            onLeaveRoom={leaveRoom}
+            removeFromQueue={removeFromQueue}
+          />
+        )}
+      </div>
     </ErrorBoundary>
   );
 }

@@ -74,8 +74,8 @@ export const PersistentYouTubePlayer = React.memo(({
 
   return (
     <div style={{
-      width: '640px',
-      height: '360px',
+      width: '800px',
+      height: '800px',
       position: 'relative'
     }}>
       <YouTube
