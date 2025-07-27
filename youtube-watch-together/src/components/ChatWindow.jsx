@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import styles from './ChatWindow.module.css';
 
 export const ChatWindow = ({
   messages,
@@ -20,25 +21,27 @@ export const ChatWindow = ({
   };
 
   return (
-    <div className="chat-window panel-content">
-      <div className="chat-messages">
+    <div className={styles.chatWindowWrapper}>
+      <div className={styles.chatMessagesContainer}>
         {messages.map((msg) => (
-          <div key={msg.id} className="chat-message">
-            <strong>{msg.user}:</strong> <span>{msg.text}</span>
+          <div key={msg.id} className={styles.chatMessageItem}>
+            <strong className={styles.chatMessageUser}>{msg.user}:</strong> 
+            <span className={styles.chatMessageText}>{msg.text}</span>
           </div>
         ))}
         <div ref={chatEndRef} />
       </div>
 
-      <div className="chat-input">
+      <div className={styles.chatInputContainer}>
         <textarea
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           rows={2}
+          className={styles.chatTextArea}
         />
-        <button onClick={onSendMessage}>Send</button>
+        <button onClick={onSendMessage} className={styles.chatSendButton}>Send</button>
       </div>
     </div>
   );

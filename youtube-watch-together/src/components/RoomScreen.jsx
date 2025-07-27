@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FiChevronLeft, FiCopy, FiMessageSquare, FiUsers } from 'react-icons/fi';
 import { VideoSearch } from './VideoSearch';
 import { VideoQueue } from './VideoQueue';
 import { ChatWindow } from './ChatWindow';
 import { VoiceChat } from './VoiceChat';
 import { PersistentYouTubePlayer } from './PersistentYouTubePlayer';
+import styles from './RoomScreen.module.css';
 
 export const RoomScreen = ({
   roomCode,
@@ -29,7 +31,22 @@ export const RoomScreen = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('chat');
-  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const sidebarToggleRef = useRef(null);
+
+  // Mobile detection and responsive handling
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile && !isSidebarOpen) {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarOpen]);
 
   // Enhanced add to queue handler with notifications
   const handleAddToQueue = useCallback((video) => {
@@ -38,7 +55,7 @@ export const RoomScreen = ({
       
       // Show brief success feedback
       const notification = document.createElement('div');
-      notification.className = 'queue-notification success';
+      notification.className = 'room-queue-notification room-success';
       notification.textContent = `Added "${video.title}" to queue`;
       document.body.appendChild(notification);
       
@@ -53,7 +70,7 @@ export const RoomScreen = ({
       
       // Show error feedback
       const notification = document.createElement('div');
-      notification.className = 'queue-notification error';
+      notification.className = 'room-queue-notification room-error';
       notification.textContent = 'Failed to add video to queue';
       document.body.appendChild(notification);
       
@@ -104,10 +121,15 @@ export const RoomScreen = ({
 
   // Auto-close sidebar on mobile when video starts playing
   useEffect(() => {
-    if (playbackState.currentVideo && window.innerWidth <= 768) {
+    if (playbackState.currentVideo && isMobile) {
       setIsSidebarOpen(false);
     }
-  }, [playbackState.currentVideo]);
+  }, [playbackState.currentVideo, isMobile]);
+
+  // Handle sidebar toggle
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
 
   // Enhanced members list with online indicators
   const MembersList = ({ users }) => {
@@ -115,31 +137,31 @@ export const RoomScreen = ({
     const speakingCount = userEntries.filter(([, user]) => user.isSpeaking).length;
     
     return (
-      <div className="panel-content">
-        <div className="members-header">
+      <div className={styles.roomMembersContent}>
+        <div className={styles.roomMembersHeader}>
           <h4>Members Online ({userEntries.length})</h4>
           {speakingCount > 0 && (
-            <span className="speaking-count">{speakingCount} speaking</span>
+            <span className={styles.roomSpeakingCount}>{speakingCount} speaking</span>
           )}
         </div>
         
-        <ul className="members-list">
+        <ul className={styles.roomMembersList}>
           {userEntries.map(([id, user]) => (
-            <li key={id} className={`member-item ${user.isSpeaking ? 'speaking' : ''}`}>
-              <div className="member-info">
-                <div className="member-avatar">
+            <li key={id} className={`${styles.roomMemberItem} ${user.isSpeaking ? styles.roomMemberSpeaking : ''}`}>
+              <div className={styles.roomMemberInfo}>
+                <div className={styles.roomMemberAvatar}>
                   {user.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
-                <span className="member-name">{user.name}</span>
+                <span className={styles.roomMemberName}>{user.name}</span>
                 {user.name === username && (
-                  <span className="you-badge">You</span>
+                  <span className={styles.roomYouBadge}>You</span>
                 )}
               </div>
               
-              <div className="member-status">
-                <div className={`status-dot ${user.isSpeaking ? 'speaking' : 'online'}`}></div>
+              <div className={styles.roomMemberStatus}>
+                <div className={`${styles.roomStatusDot} ${user.isSpeaking ? styles.roomStatusSpeaking : styles.roomStatusOnline}`}></div>
                 {user.isSpeaking && (
-                  <span className="speaking-indicator">🎤</span>
+                  <span className={styles.roomSpeakingIndicator}>🎤</span>
                 )}
               </div>
             </li>
@@ -150,61 +172,126 @@ export const RoomScreen = ({
   };
   
   // Enhanced room info panel
-  const RoomInfoPanel = ({ roomCode, username, onLeaveRoom }) => (
-    <div className="sidebar-info-panel">
-      <div className="room-header">
-        <h3>Watch Together</h3>
-        <div className="room-status">
-          <span className="status-indicator online"></span>
-          <span>Connected</span>
-        </div>
-      </div>
-      
-      <div className="info-block">
-        <h4>Room Code</h4>
-        <div className="room-code-container">
-          <p>{roomCode}</p>
-          <button 
-            className="copy-code-btn"
-            onClick={() => navigator.clipboard?.writeText(roomCode)}
-            title="Copy room code"
-          >
-            📋
-          </button>
-        </div>
-      </div>
-      
-      <div className="info-block">
-        <h4>Your Name</h4>
-        <p className="username-display">{username}</p>
-      </div>
-      
-      <button onClick={onLeaveRoom} className="leave-button-sidebar">
-        Leave Room
-      </button>
-    </div>
-  );
+  const RoomInfoPanel = ({ roomCode, username, onLeaveRoom }) => {
+    const handleCopyRoomCode = useCallback(async () => {
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(roomCode);
+          
+          // Show success feedback
+          const button = document.querySelector(`.${styles.roomCopyCodeBtn}`);
+          if (button) {
+            const originalText = button.textContent;
+            button.textContent = '✓';
+            button.style.color = 'var(--success-color)';
+            
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.style.color = '';
+            }, 1500);
+          }
+        } else {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = roomCode;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+      } catch (error) {
+        console.error('Failed to copy room code:', error);
+      }
+    }, [roomCode]);
 
-  // Handle search expansion
-  const handleSearchExpansion = useCallback((expanded) => {
-    setSearchExpanded(expanded);
-  }, []);
+    return (
+      <div className={styles.roomSidebarInfoPanel}>
+        <div className={styles.roomHeaderInfo}>
+          <h3>Watch Together</h3>
+          <div className={styles.roomStatusInfo}>
+            <span className={`${styles.roomStatusIndicator} ${styles.roomStatusOnline}`}></span>
+            <span>Connected</span>
+          </div>
+        </div>
+        
+        <div className={styles.roomInfoBlock}>
+          <h4>Room Code</h4>
+          <div className={styles.roomCodeContainer}>
+            <p>{roomCode}</p>
+            <button 
+              className={styles.roomCopyCodeBtn}
+              onClick={handleCopyRoomCode}
+              title="Copy room code"
+              type="button"
+            >
+              <FiCopy />
+            </button>
+          </div>
+        </div>
+        
+        <div className={styles.roomInfoBlock}>
+          <h4>Your Name</h4>
+          <p className={styles.roomUsernameDisplay}>{username}</p>
+        </div>
+        
+        <button onClick={onLeaveRoom} className={styles.roomLeaveButtonSidebar} type="button">
+          Leave Room
+        </button>
+      </div>
+    );
+  };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Toggle sidebar with Ctrl/Cmd + B
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+      
+      // Focus search with Ctrl/Cmd + K
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.querySelector('.room-search-input')?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [toggleSidebar]);
+
+  // Handle click outside sidebar on mobile
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isMobile && isSidebarOpen) {
+        const sidebar = document.querySelector(`.${styles.roomSidebar}`);
+        const toggle = document.querySelector(`.${styles.roomSidebarToggle}`);
+        
+        if (sidebar && !sidebar.contains(e.target) && !toggle?.contains(e.target)) {
+          setIsSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isSidebarOpen, isMobile]);
 
   return (
-    <div className={`room-screen-new ${isSidebarOpen ? 'sidebar-open' : ''} ${searchExpanded ? 'search-expanded' : ''}`}>
+    <div className={styles.roomScreenWrapper}>
       {/* Main content column */}
-      <main className="main-content-column">
-        <div className={`top-search-container ${searchExpanded ? 'expanded' : ''}`}>
+      <main className={`${styles.roomMainContent} ${isSidebarOpen ? styles.roomMainContentWithSidebar : ''}`}>
+        <div className={styles.roomTopSearchContainer}>
           <VideoSearch
             searchResults={searchResults}
             onSearchChange={onSearchChange}
             onSearchSubmit={onSearchSubmit}
             onAddToQueue={handleAddToQueue}
-            onExpansionChange={handleSearchExpansion}
           />
         </div>
 
-        <div className="player-container-new">
+        <div className={styles.roomPlayerContainer}>
           {playbackState.currentVideo ? (
             <PersistentYouTubePlayer
               videoId={playbackState.currentVideo}
@@ -214,15 +301,16 @@ export const RoomScreen = ({
               onStateChange={handlePlayerStateChange}
             />
           ) : (
-            <div className="player-placeholder-new">
-              <div className="placeholder-content">
-                <div className="placeholder-icon">🎬</div>
+            <div className={styles.roomPlayerPlaceholder}>
+              <div className={styles.roomPlaceholderContent}>
+                <div className={styles.roomPlaceholderIcon}>🎬</div>
                 <h3>Welcome to the room, {username}!</h3>
                 <p>Search for a video above and add it to the queue to start watching together.</p>
-                <div className="quick-actions">
+                <div className={styles.roomQuickActions}>
                   <button 
-                    className="quick-action-btn"
-                    onClick={() => document.querySelector('.search-input')?.focus()}
+                    className={styles.roomQuickActionBtn}
+                    onClick={() => document.querySelector('.room-search-input')?.focus()}
+                    type="button"
                   >
                     🔍 Start Searching
                   </button>
@@ -232,22 +320,23 @@ export const RoomScreen = ({
           )}
         </div>
         
-        <div className="bottom-queue-container">
-          <div className="queue-header">
+        <div className={styles.roomBottomQueueContainer}>
+          <div className={styles.roomQueueHeader}>
             <h3>
               Queue 
-              <span className="queue-count">({videoQueue.length})</span>
+              <span className={styles.roomQueueCount}>({videoQueue.length})</span>
             </h3>
             {videoQueue.length > 0 && (
-              <div className="queue-controls">
+              <div className={styles.roomQueueControls}>
                 <button 
-                  className="clear-queue-btn"
+                  className={styles.roomClearQueueBtn}
                   onClick={() => {
                     if (confirm('Clear entire queue?')) {
                       videoQueue.forEach(video => removeFromQueue(video.id));
                     }
                   }}
                   title="Clear queue"
+                  type="button"
                 >
                   Clear All
                 </button>
@@ -264,65 +353,90 @@ export const RoomScreen = ({
         </div>
       </main>
       
+      {/* Error display */}
       {error && (
-        <div className="error-message global-error">
+        <div className={`room-error-message ${styles.roomGlobalError}`}>
           <span>⚠️ {error}</span>
-          <button onClick={() => window.location.reload()}>Retry</button>
+          <button onClick={() => window.location.reload()} type="button">
+            Retry
+          </button>
         </div>
       )}
 
-      <aside className={`sidebar-new ${isSidebarOpen ? 'open' : ''}`}>
+      {/* Sidebar */}
+      <aside className={`${styles.roomSidebar} ${isSidebarOpen ? styles.roomSidebarOpen : ''}`}>
         <button 
-          className="sidebar-toggle-new" 
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          ref={sidebarToggleRef}
+          className={styles.roomSidebarToggle}
+          onClick={toggleSidebar}
           aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          title={`${isSidebarOpen ? 'Close' : 'Open'} sidebar (Ctrl+B)`}
+          type="button"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
+          <FiChevronLeft />
         </button>
         
-        <div className="sidebar-inner-new">
+        <div className={styles.roomSidebarInner}>
           <RoomInfoPanel 
             roomCode={roomCode}
             username={username}
             onLeaveRoom={onLeaveRoom}
           />
 
-          <nav className="tab-nav-new">
+          <nav className={styles.roomTabNav} role="tablist">
             <button 
               onClick={() => setActiveTab('chat')} 
-              className={activeTab === 'chat' ? 'active' : ''}
+              className={`${styles.roomTabButton} ${activeTab === 'chat' ? styles.roomTabActive : ''}`}
               aria-pressed={activeTab === 'chat'}
+              role="tab"
+              aria-selected={activeTab === 'chat'}
+              aria-controls="room-chat-panel"
+              type="button"
             >
-              Chat
+              <FiMessageSquare />
+              <span>Chat</span>
               {chatMessages.length > 0 && (
-                <span className="tab-badge">{chatMessages.length}</span>
+                <span className={styles.roomTabBadge} aria-label={`${chatMessages.length} messages`}>
+                  {chatMessages.length > 99 ? '99+' : chatMessages.length}
+                </span>
               )}
             </button>
             <button 
               onClick={() => setActiveTab('members')} 
-              className={activeTab === 'members' ? 'active' : ''}
+              className={`${styles.roomTabButton} ${activeTab === 'members' ? styles.roomTabActive : ''}`}
               aria-pressed={activeTab === 'members'}
+              role="tab"
+              aria-selected={activeTab === 'members'}
+              aria-controls="room-members-panel"
+              type="button"
             >
-              Members
-              <span className="tab-badge">{Object.keys(users).length}</span>
+              <FiUsers />
+              <span>Members</span>
+              <span className={styles.roomTabBadge} aria-label={`${Object.keys(users).length} members`}>
+                {Object.keys(users).length}
+              </span>
             </button>
           </nav>
 
-          <div className="panels-new">
+          <div className={styles.roomPanels}>
             {activeTab === 'chat' && (
-              <ChatWindow
-                messages={chatMessages}
-                message={message}
-                onMessageChange={onMessageChange}
-                onSendMessage={onSendMessage}
-              />
+              <div id="room-chat-panel" role="tabpanel" aria-labelledby="room-chat-tab" className={styles.roomPanel}>
+                <ChatWindow
+                  messages={chatMessages}
+                  message={message}
+                  onMessageChange={onMessageChange}
+                  onSendMessage={onSendMessage}
+                />
+              </div>
             )}
-            {activeTab === 'members' && <MembersList users={users} />}
+            {activeTab === 'members' && (
+              <div id="room-members-panel" role="tabpanel" aria-labelledby="room-members-tab" className={styles.roomPanel}>
+                <MembersList users={users} />
+              </div>
+            )}
           </div>
           
-          <div className="voice-chat-bar-new">
+          <div className={styles.roomVoiceChatBar}>
             <VoiceChat
               users={users}
               isSpeaking={users[username]?.isSpeaking || false}
@@ -331,6 +445,15 @@ export const RoomScreen = ({
           </div>
         </div>
       </aside>
+
+      {/* Mobile sidebar overlay */}
+      {isSidebarOpen && isMobile && (
+        <div 
+          className={styles.roomSidebarOverlay}
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

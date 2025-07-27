@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import YouTube from 'react-youtube';
+import styles from './PersistentYouTubePlayer.module.css';
 
 export const PersistentYouTubePlayer = React.memo(({
   videoId,
@@ -73,11 +74,7 @@ export const PersistentYouTubePlayer = React.memo(({
   }, [videoId, currentTime, isPlaying, internalReady]);
 
   return (
-    <div style={{
-      width: '800px',
-      height: '800px',
-      position: 'relative'
-    }}>
+    <div className={styles.youTubePlayerWrapper}>
       <YouTube
         key={`player-${videoId || 'empty'}`} // Only remount when videoId changes
         videoId={videoId}
@@ -94,7 +91,7 @@ export const PersistentYouTubePlayer = React.memo(({
         }}
         onReady={handleReady}
         onStateChange={handleStateChange}
-        style={{ position: 'absolute', top: 0, left: 0 }}
+        className={styles.youTubePlayerIframe}
       />
     </div>
   );

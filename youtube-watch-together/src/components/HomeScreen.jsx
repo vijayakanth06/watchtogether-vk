@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import styles from './HomeScreen.module.css';
 
 export const HomeScreen = ({ 
   onCreateRoom, 
@@ -45,12 +46,12 @@ export const HomeScreen = ({
   };
 
   return (
-    <div className="home-screen">
-      <div className="home-container">
-        <h1>YouTube Watch Together</h1>
-        {error && <div className="error-message">{error}</div>}
+    <div className={styles.homeScreenWrapper}>
+      <div className={styles.homeScreenContainer}>
+        <h1 className={styles.homeScreenTitle}>YouTube Watch Together</h1>
+        {error && <div className={styles.homeScreenError}>{error}</div>}
         
-        <div className="form-group">
+        <div className={styles.homeFormGroup}>
           <input
             type="text"
             placeholder="Your name"
@@ -59,23 +60,25 @@ export const HomeScreen = ({
             minLength={3}
             maxLength={20}
             required
+            className={styles.homeUsernameInput}
           />
         </div>
 
-        <div className="button-group">
+        <div className={styles.homeButtonGroup}>
           <button 
             onClick={handleCreateRoom} 
             disabled={!username || isCreating || isJoining}
+            className={styles.homeCreateButton}
           >
             {isCreating ? 'Creating...' : 'Create New Room'}
           </button>
         </div>
         
-        <div className="join-divider">
+        <div className={styles.homeJoinDivider}>
           <span>OR</span>
         </div>
 
-        <div className="form-group join-group">
+        <div className={`${styles.homeFormGroup} ${styles.homeJoinGroup}`}>
           <input
             type="text"
             placeholder="Enter room code"
@@ -84,10 +87,12 @@ export const HomeScreen = ({
             pattern="[A-Z0-9]{6}"
             maxLength={6}
             required
+            className={styles.homeRoomCodeInput}
           />
           <button 
             onClick={handleJoinRoom} 
             disabled={!username || !roomCode || isCreating || isJoining}
+            className={styles.homeJoinButton}
           >
             {isJoining ? 'Joining...' : 'Join'}
           </button>

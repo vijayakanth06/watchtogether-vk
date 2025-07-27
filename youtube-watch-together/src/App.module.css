@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --primary-red: #E50914;
+  --dark-red: #B20710;
+  --near-black: #141414;
+  --dark-gray: #1F1F1F;
+  --mid-gray: #333333;
+  --light-gray: #8c8c8c;
+  --white: #ffffff;
+  --font-main: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  
+  --red-glow-shadow: 0 0 15px rgba(229, 9, 20, 0.5);
+  --dark-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  --sidebar-width: 380px;
+  --header-height: 70px;
+  --transition-speed: 0.3s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--near-black);
+  color: var(--white);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+.appMainContainer {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="text"],
+textarea {
+  background: var(--mid-gray);
+  border: 1px solid var(--light-gray);
+  color: var(--white);
+  padding: 12px 15px;
+  border-radius: 5px;
+  width: 100%;
+  font-family: var(--font-main);
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+}
+
+button {
+  background: var(--primary-red);
+  color: var(--white);
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--dark-red);
+}
+
+button:disabled {
+  background: var(--light-gray);
+  cursor: not-allowed;
+}
+
+.appErrorFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.appErrorFallback h2 {
+  margin-bottom: 1rem;
+  color: var(--primary-red);
+}
+
+.appErrorFallback pre {
+  background: var(--dark-gray);
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  max-width: 600px;
+  overflow: auto;
+}
+
+.globalError {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--dark-red), #dc3545);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  animation: slideInDown 0.3s ease;
+}
+
+.globalError button {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 90vw;
+    --transition-speed: 0.2s;
+  }
+}

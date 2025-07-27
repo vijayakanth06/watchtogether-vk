@@ -1,132 +1,93 @@
-import { useState } from 'react';
+import React from 'react';
+import { FiPlay, FiTrash2 } from 'react-icons/fi';
+import styles from './VideoQueue.module.css';
 
-export const VideoQueue = ({ videos, currentVideo, onSelectVideo, onDeleteVideo }) => {
-  const [deletingIds, setDeletingIds] = useState(new Set());
+/**
+ * A component that displays the list of videos in the room's queue.
+ *
+ * @param {object} props - The component props.
+ * @param {Array<object>} props.videos - An array of video objects to display in the queue.
+ * Each video object should have: id, thumbnail, title, channelTitle.
+ * @param {string|null} props.currentVideo - The ID of the video that is currently playing.
+ * @param {Function} props.onSelectVideo - Callback function to play a video from the queue.
+ * @param {Function} props.onDeleteVideo - Callback function to remove a video from the queue.
+ */
+export const VideoQueue = React.memo(({ videos, currentVideo, onSelectVideo, onDeleteVideo }) => {
 
-  const handleDelete = async (videoId) => {
-    // Add visual feedback for deletion
-    setDeletingIds(prev => new Set([...prev, videoId]));
-    
-    // Small delay for animation
-    setTimeout(() => {
-      onDeleteVideo(videoId);
-      setDeletingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(videoId);
-        return newSet;
-      });
-    }, 200);
+  // Handler for deleting a video. Prevents the click from also selecting the video.
+  const handleDelete = (e, videoId) => {
+    e.stopPropagation(); // Prevent the item's onClick from firing
+    onDeleteVideo(videoId);
   };
 
   if (!videos || videos.length === 0) {
     return (
-      <div className="panel-content empty-queue">
-        <div className="empty-queue-content">
-          <div className="empty-icon">🎵</div>
-          <p>The queue is empty</p>
-          <p>Search for videos above to get started!</p>
+      <div className={`${styles.videoQueueWrapper} ${styles.emptyQueueState}`}>
+        <div className={styles.emptyQueueContent}>
+          <div className={styles.emptyQueueIcon}>📺</div>
+          <p className={styles.emptyQueueTitle}>The queue is empty.</p>
+          <span className={styles.emptyQueueSubtitle}>Search for a video to get started.</span>
         </div>
       </div>
     );
   }
 
-  const getCurrentVideoIndex = () => {
-    return videos.findIndex(video => video.id === currentVideo);
-  };
-
-  const currentIndex = getCurrentVideoIndex();
-
   return (
-    <ul className="video-queue panel-content">
-      {videos.map((video, index) => {
-        const isCurrentVideo = video.id === currentVideo;
-        const isNextUp = index === currentIndex + 1;
-        const isPrevious = index < currentIndex;
-        const isDeleting = deletingIds.has(video.id);
-        
-        return (
-          <li 
-            key={video.id}
-            className={`video-list-item queue-item ${isCurrentVideo ? 'active' : ''} ${isNextUp ? 'next-up' : ''} ${isPrevious ? 'played' : ''} ${isDeleting ? 'deleting' : ''}`}
-            style={{ 
-              animationDelay: `${index * 0.1}s`,
-              opacity: isDeleting ? 0.5 : 1,
-              transform: isDeleting ? 'scale(0.95)' : 'scale(1)'
-            }}
-          >
-            <div className="queue-position">
-              {isCurrentVideo ? (
-                <div className="now-playing-indicator">
-                  <div className="playing-bars">
-                    <div className="bar"></div>
-                    <div className="bar"></div>
-                    <div className="bar"></div>
-                  </div>
-                </div>
-              ) : (
-                <span className="position-number">{index + 1}</span>
-              )}
-            </div>
+    <div className={styles.videoQueueWrapper}>
+      <ul className={styles.queueListContainer}>
+        {videos.map((video, index) => {
+          const isPlaying = video.id === currentVideo;
+          // Construct the className string, applying 'nowPlaying' if the video is the current one.
+          const itemClassName = `${styles.queueItemWrapper} ${isPlaying ? styles.queueItemNowPlaying : ''}`;
 
-            <div className="item-main" onClick={() => !isDeleting && onSelectVideo(video.id)}>
-              <div className="thumbnail-container">
-                <img 
-                  src={video.thumbnail} 
-                  alt={video.title} 
-                  loading="lazy"
-                  className="video-thumbnail"
-                />
-                {isCurrentVideo && (
-                  <div className="play-overlay">
-                    <div className="play-button">▶</div>
-                  </div>
-                )}
-                {video.duration && (
-                  <span className="duration-badge">{video.duration}</span>
-                )}
-              </div>
-              
-              <div className="info">
-                <h4 title={video.title}>{video.title}</h4>
-                <div className="video-meta">
-                  <p className="channel">{video.channel || 'Unknown Channel'}</p>
-                  <p className="added-by">Added by: <span className="username">{video.addedBy}</span></p>
-                </div>
-                {isNextUp && <div className="next-up-badge">Next up</div>}
-                {isPrevious && <div className="played-badge">Played</div>}
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => handleDelete(video.id)}
-              className="delete-button"
-              title={`Remove "${video.title}" from queue`}
-              disabled={isDeleting}
+          return (
+            <li
+              key={video.id}
+              className={itemClassName}
+              onClick={() => onSelectVideo(video.id)}
+              aria-current={isPlaying ? 'true' : 'false'}
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectVideo(video.id)}
             >
-              {isDeleting ? '...' : '×'}
-            </button>
-          </li>
-        );
-      })}
-      
-      {videos.length > 0 && (
-        <div className="queue-summary">
-          <div className="summary-stats">
-            <span className="total-videos">{videos.length} video{videos.length !== 1 ? 's' : ''}</span>
-            {currentIndex >= 0 && (
-              <span className="current-position">
-                Playing: {currentIndex + 1} of {videos.length}
-              </span>
-            )}
-          </div>
-          
-          {currentIndex >= 0 && currentIndex < videos.length - 1 && (
-            <div className="up-next">
-              <span>Up next: {videos.length - currentIndex - 1} video{videos.length - currentIndex - 1 !== 1 ? 's' : ''}</span>
-            </div>
-          )}
-        </div>
-      )}
-    </ul>
+              <div className={styles.itemContentWrapper}>
+                <div className={styles.thumbnailContainerQueue}>
+                  <img 
+                    src={video.thumbnail} 
+                    alt={`Thumbnail for ${video.title}`} 
+                    className={styles.thumbnailImageQueue}
+                    // Add a fallback for broken image links
+                    onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/120x90/141414/ffffff?text=Video'; }}
+                  />
+                  {isPlaying && (
+                    <div className={styles.playIconOverlayQueue}>
+                      <FiPlay className={styles.playIconQueue} />
+                    </div>
+                  )}
+                  <span className={styles.queuePositionBadge}>{index + 1}</span>
+                </div>
+
+                <div className={styles.videoDetailsQueue}>
+                  <p className={styles.titleQueue} title={video.title}>
+                    {video.title}
+                  </p>
+                  <p className={styles.channelQueue}>{video.channelTitle}</p>
+                </div>
+              </div>
+
+              <div className={styles.itemActionsQueue}>
+                <button
+                  className={styles.deleteButtonQueue}
+                  onClick={(e) => handleDelete(e, video.id)}
+                  aria-label={`Remove ${video.title} from queue`}
+                  title="Remove from queue"
+                >
+                  <FiTrash2 />
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
-};
+});

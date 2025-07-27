@@ -9,7 +9,7 @@ import { useYouTubePlayer } from './hooks/useYouTubePlayer';
 import { ref, set, get } from 'firebase/database';
 import { db } from './services/firebase';
 import { startRoomCleanupService, stopRoomCleanupService } from './services/roomCleanup';
-import './App.css';
+import styles from './App.module.css';
 
 // Session management utilities
 const SESSION_KEY = 'yt_watch_together_session';
@@ -43,7 +43,7 @@ const clearSession = () => {
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <div role="alert" className="error-fallback">
+    <div role="alert" className={styles.appErrorFallback}>
       <h2>Something went wrong</h2>
       <pre>{error.message}</pre>
       <button onClick={resetErrorBoundary}>Try again</button>
@@ -97,18 +97,17 @@ function App() {
     };
   }, []);
 
-    const handlePlayerStateChange = useCallback((state) => {
-        if (!window.YT || !window.YT.PlayerState) return;
+  const handlePlayerStateChange = useCallback((state) => {
+    if (!window.YT || !window.YT.PlayerState) return;
 
-        const { PLAYING, PAUSED, ENDED } = window.YT.PlayerState;
+    const { PLAYING, PAUSED, ENDED } = window.YT.PlayerState;
 
-        if (state === PLAYING && !playbackState.isPlaying) {
-            updatePlaybackState({ isPlaying: true });
-        } else if ((state === PAUSED || state === ENDED) && playbackState.isPlaying) {
-            updatePlaybackState({ isPlaying: false });
-        }
-    }, [updatePlaybackState, playbackState.isPlaying]);
-
+    if (state === PLAYING && !playbackState.isPlaying) {
+      updatePlaybackState({ isPlaying: true });
+    } else if ((state === PAUSED || state === ENDED) && playbackState.isPlaying) {
+      updatePlaybackState({ isPlaying: false });
+    }
+  }, [updatePlaybackState, playbackState.isPlaying]);
 
   const {
     playerRef,
@@ -121,8 +120,8 @@ function App() {
 
   const createRoom = useCallback(async () => {
     if (!username.trim()) {
-        setAppError(new Error("Username cannot be empty."));
-        return;
+      setAppError(new Error("Username cannot be empty."));
+      return;
     }
     const newRoomCode = generateRoomCode();
     await set(ref(db, `rooms/${newRoomCode}`), {
@@ -137,14 +136,14 @@ function App() {
 
   const joinRoom = useCallback(async () => {
     if (!username.trim() || !roomCode.trim()) {
-        setAppError(new Error("Username and Room Code are required."));
-        return;
+      setAppError(new Error("Username and Room Code are required."));
+      return;
     }
     const roomRef = ref(db, `rooms/${roomCode}`);
     const roomSnapshot = await get(roomRef);
     if (!roomSnapshot.exists()) {
-        setAppError(new Error('Room not found'));
-        return;
+      setAppError(new Error('Room not found'));
+      return;
     };
 
     setHasJoined(true);
@@ -194,19 +193,18 @@ function App() {
 
     // Sync playing state
     if (playbackState.isPlaying && playerState !== window.YT.PlayerState.PLAYING) {
-        player.playVideo();
+      player.playVideo();
     } else if (!playbackState.isPlaying && playerState === window.YT.PlayerState.PLAYING) {
-        player.pauseVideo();
+      player.pauseVideo();
     }
 
     // Sync time (with a tolerance)
     const timeDiff = Math.abs(player.getCurrentTime() - playbackState.currentTime);
     if (timeDiff > 2) {
-        player.seekTo(playbackState.currentTime, true);
+      player.seekTo(playbackState.currentTime, true);
     }
 
   }, [playbackState, playerRef]);
-
 
   const resetApp = useCallback(() => {
     setAppError(null);
@@ -219,7 +217,7 @@ function App() {
       onError={(error) => setAppError(error)}
       onReset={resetApp}
     >
-      <div className="App">
+      <div className={styles.appMainContainer}>
         {screen === 'home' ? (
           <HomeScreen
             onCreateRoom={createRoom}
