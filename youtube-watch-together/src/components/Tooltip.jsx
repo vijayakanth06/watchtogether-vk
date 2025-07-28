@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 export const Tooltip = ({ children, content }) => {
   const [isVisible, setIsVisible] = useState(false);
 

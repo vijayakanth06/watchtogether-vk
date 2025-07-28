@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import YouTube from 'react-youtube';
-import styles from './PersistentYouTubePlayer.module.css';
+import styles from '../styles/PersistentYouTubePlayer.module.css';
 
 export const PersistentYouTubePlayer = React.memo(({
   videoId,

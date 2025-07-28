@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { FiX, FiSearch } from 'react-icons/fi';
-import styles from './VideoSearch.module.css';
+import styles from '../styles/VideoSearch.module.css';
 
 export const VideoSearch = ({
   searchResults,

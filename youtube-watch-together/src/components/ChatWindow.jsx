@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import styles from './ChatWindow.module.css';
+import styles from '../styles/ChatWindow.module.css';
 
 export const ChatWindow = ({
   messages,

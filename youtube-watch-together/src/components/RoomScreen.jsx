@@ -5,7 +5,7 @@ import { VideoQueue } from './VideoQueue';
 import { ChatWindow } from './ChatWindow';
 import { VoiceChat } from './VoiceChat';
 import { PersistentYouTubePlayer } from './PersistentYouTubePlayer';
-import styles from './RoomScreen.module.css';
+import styles from '../styles/RoomScreen.module.css';
 
 export const RoomScreen = ({
   roomCode,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiPlay, FiTrash2 } from 'react-icons/fi';
-import styles from './VideoQueue.module.css';
+import styles from '../styles/VideoQueue.module.css';
 
 /**
  * A component that displays the list of videos in the room's queue.

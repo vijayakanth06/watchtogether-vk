@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import styles from './HomeScreen.module.css';
+import styles from '../styles/HomeScreen.module.css';
 
 export const HomeScreen = ({ 
   onCreateRoom, 

@@ -1,4 +1,4 @@
-import styles from './VoiceChat.module.css';
+import styles from '../styles/VideoQueue.module.css';
 
 export const VoiceChat = ({ users, isSpeaking, onPushToTalk }) => {
   // Use Object.entries to get the user ID for the key prop
