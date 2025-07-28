@@ -16,6 +16,32 @@
   --sidebar-width: 380px;
   --header-height: 70px;
   --transition-speed: 0.3s;
+  :root {
+  /* Backgrounds */
+  --dark-bg: #0f172a;
+  --input-area-bg: #1e293b;
+  --input-bg: #334155;
+  --border-color: #334155;
+  --disabled-bg: #475569;
+  --scrollbar-thumb: #4a5568;
+  --scrollbar-thumb-hover: #5a6578;
+  
+  /* Bubble colors */
+  --user-bubble-bg: #3b82f6;
+  --user-bubble-text: #ffffff;
+  --other-bubble-bg: #1e293b;
+  --other-bubble-text: #e2e8f0;
+  
+  /* Accent colors */
+  --primary-accent: #3b82f6;
+  --accent-hover: #2563eb;
+  
+  /* Text colors */
+  --user-name-color: #93c5fd;
+  --timestamp-color: #94a3b8;
+  --input-text: #f1f5f9;
+  --white: #ffffff;
+}
 }
 
 * {

@@ -1,19 +1,18 @@
 .chatWindowWrapper {
   height: 100%;
-  overflow-y: auto;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  justify-content: flex-end;
+  background: var(--dark-bg);
+  position: relative;
 }
 
 .chatMessagesContainer {
   flex-grow: 1;
   overflow-y: auto;
-  margin-bottom: 1rem;
+  padding: 1rem;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .chatMessagesContainer > div {
@@ -21,83 +20,107 @@
   flex-direction: column;
 }
 
+/* Message bubbles */
 .chatMessageItem {
-  margin-bottom: 0.75rem;
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
   line-height: 1.4;
   word-wrap: break-word;
-  padding: 0.5rem;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  transition: background-color 0.2s ease;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.chatMessageItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.chatMessageUser {
-  color: var(--primary-red);
-  margin-right: 0.5rem;
-  font-weight: 600;
+/* User messages (right aligned) */
+.userMessage {
+  align-self: flex-end;
+  background: var(--primary-red);
+  color: white;
+  border-bottom-right-radius: 4px;
 }
 
-.chatMessageText {
+/* Assistant messages (left aligned) */
+.assistantMessage {
+  align-self: flex-start;
+  background: var(--message-bg);
   color: var(--white);
+  border-bottom-left-radius: 4px;
 }
 
+/* Message metadata */
+.messageMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Input area styling */
 .chatInputContainer {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: flex-end;
-  padding-top: 1rem;
-  border-top: 1px solid var(--mid-gray);
+  padding: 1rem;
+  background: var(--dark-bg);
+  border-top: 1px solid var(--border-color);
 }
 
 .chatTextArea {
   resize: none;
   flex-grow: 1;
-  min-height: 45px;
-  max-height: 120px;
-  background: var(--mid-gray);
-  border: 1px solid var(--light-gray);
+  min-height: 50px;
+  max-height: 150px;
+  background: var(--input-bg);
   color: var(--white);
-  padding: 12px 15px;
-  border-radius: 5px;
+  padding: 0.875rem 1.25rem;
+  border-radius: 25px;
+  border: 1px solid var(--border-color);
   font-family: var(--font-main);
+  font-size: 0.95rem;
   transition: all 0.2s ease;
 }
 
 .chatTextArea:focus {
   outline: none;
   border-color: var(--primary-red);
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.25);
 }
 
 .chatSendButton {
-  height: 45px;
-  padding: 0 1.5rem;
+  height: 50px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   background: var(--primary-red);
   color: var(--white);
   border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 5px;
+  border-radius: 50%;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .chatSendButton:hover:not(:disabled) {
   background: var(--dark-red);
+  transform: scale(1.05);
 }
 
 .chatSendButton:disabled {
-  background: var(--light-gray);
+  background: var(--disabled-bg);
   cursor: not-allowed;
 }
 
+/* Scrollbar styling */
 .chatMessagesContainer::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .chatMessagesContainer::-webkit-scrollbar-track {
@@ -105,39 +128,43 @@
 }
 
 .chatMessagesContainer::-webkit-scrollbar-thumb {
-  background: var(--mid-gray);
-  border-radius: 3px;
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
 }
 
 .chatMessagesContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--light-gray);
+  background: var(--scrollbar-thumb-hover);
 }
 
+/* Timestamp styling */
+.messageTimestamp {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* Mobile responsiveness */
 @media (max-width: 768px) {
+  .chatMessagesContainer {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .chatMessageItem {
+    max-width: 90%;
+    padding: 0.6rem 0.9rem;
+  }
+  
   .chatInputContainer {
-    flex-direction: column;
-    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .chatTextArea {
+    padding: 0.75rem 1rem;
+    min-height: 45px;
   }
   
   .chatSendButton {
-    width: 100%;
-    height: 40px;
-  }
-
-  .chatWindowWrapper {
-    padding: 0.75rem;
-  }
-
-  .chatMessageItem {
-    padding: 0.4rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .chatMessageUser {
-    font-size: 0.9rem;
-  }
-
-  .chatMessageText {
-    font-size: 0.9rem;
+    height: 45px;
+    width: 45px;
   }
 }
