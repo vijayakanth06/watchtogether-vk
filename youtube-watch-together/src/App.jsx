@@ -62,6 +62,7 @@ function App() {
   const [hasJoined, setHasJoined] = useState(false);
   const userId = useRef(Date.now().toString(36) + Math.random().toString(36).substring(2)).current;
   const cleanupIntervalRef = useRef(null);
+  const stateChangeTimeoutRef = useRef(null);
 
   const {
     videoQueue,
@@ -79,6 +80,67 @@ function App() {
 
   const { startSpeaking, stopSpeaking } = useVoiceChat(roomCode, userId, users);
 
+  // Enhanced player state change handler
+  const handlePlayerStateChange = useCallback((state, playerInfo = {}) => {
+    if (!window.YT || !window.YT.PlayerState) return;
+
+    console.log('App received state change:', state, playerInfo);
+
+    const { PLAYING, PAUSED, ENDED, BUFFERING } = window.YT.PlayerState;
+    
+    // Clear any pending state change updates
+    if (stateChangeTimeoutRef.current) {
+      clearTimeout(stateChangeTimeoutRef.current);
+    }
+
+    // Debounce state changes slightly to avoid rapid updates
+    stateChangeTimeoutRef.current = setTimeout(() => {
+      const updates = {};
+      
+      switch (state) {
+        case PLAYING:
+          if (!playbackState.isPlaying) {
+            updates.isPlaying = true;
+          }
+          if (playerInfo.currentTime !== undefined) {
+            updates.currentTime = playerInfo.currentTime;
+          }
+          break;
+          
+        case PAUSED:
+        case ENDED:
+          if (playbackState.isPlaying) {
+            updates.isPlaying = false;
+          }
+          if (playerInfo.currentTime !== undefined) {
+            updates.currentTime = playerInfo.currentTime;
+          }
+          break;
+          
+        case BUFFERING:
+          // Don't change play state during buffering
+          if (playerInfo.currentTime !== undefined) {
+            updates.currentTime = playerInfo.currentTime;
+          }
+          break;
+      }
+
+      // Only update if we have changes
+      if (Object.keys(updates).length > 0) {
+        console.log('Updating playback state:', updates);
+        updatePlaybackState(updates);
+      }
+    }, 100);
+  }, [updatePlaybackState, playbackState.isPlaying]);
+
+  const {
+    playerRef,
+    handleReady,
+    handlePlayerStateChange: playerStateHandler,
+    getCurrentTime,
+    getPlayerState
+  } = useYouTubePlayer(playbackState.currentVideo, handlePlayerStateChange);
+
   useEffect(() => {
     const session = loadSession();
     if (session) {
@@ -94,25 +156,11 @@ function App() {
       if (cleanupIntervalRef.current) {
         stopRoomCleanupService(cleanupIntervalRef.current);
       }
+      if (stateChangeTimeoutRef.current) {
+        clearTimeout(stateChangeTimeoutRef.current);
+      }
     };
   }, []);
-
-  const handlePlayerStateChange = useCallback((state) => {
-    if (!window.YT || !window.YT.PlayerState) return;
-
-    const { PLAYING, PAUSED, ENDED } = window.YT.PlayerState;
-
-    if (state === PLAYING && !playbackState.isPlaying) {
-      updatePlaybackState({ isPlaying: true });
-    } else if ((state === PAUSED || state === ENDED) && playbackState.isPlaying) {
-      updatePlaybackState({ isPlaying: false });
-    }
-  }, [updatePlaybackState, playbackState.isPlaying]);
-
-  const {
-    playerRef,
-    handleReady,
-  } = useYouTubePlayer(playbackState.currentVideo, handlePlayerStateChange);
 
   const generateRoomCode = useCallback(() => {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -185,26 +233,26 @@ function App() {
     }
   }, [startSpeaking, stopSpeaking, updateUserSpeaking]);
 
+  // Sync periodic time updates when playing
   useEffect(() => {
-    if (!playerRef.current || !playbackState.currentVideo) return;
-    
-    const player = playerRef.current;
-    const playerState = player.getPlayerState();
+    if (!playbackState.isPlaying || !playerRef.current) return;
 
-    // Sync playing state
-    if (playbackState.isPlaying && playerState !== window.YT.PlayerState.PLAYING) {
-      player.playVideo();
-    } else if (!playbackState.isPlaying && playerState === window.YT.PlayerState.PLAYING) {
-      player.pauseVideo();
-    }
+    const timeUpdateInterval = setInterval(() => {
+      try {
+        const currentTime = getCurrentTime();
+        const playerState = getPlayerState();
+        
+        // Only update if player is actually playing
+        if (playerState === window.YT.PlayerState.PLAYING) {
+          updatePlaybackState({ currentTime });
+        }
+      } catch (error) {
+        console.error('Error updating time:', error);
+      }
+    }, 2000); // Update every 2 seconds when playing
 
-    // Sync time (with a tolerance)
-    const timeDiff = Math.abs(player.getCurrentTime() - playbackState.currentTime);
-    if (timeDiff > 2) {
-      player.seekTo(playbackState.currentTime, true);
-    }
-
-  }, [playbackState, playerRef]);
+    return () => clearInterval(timeUpdateInterval);
+  }, [playbackState.isPlaying, getCurrentTime, getPlayerState, updatePlaybackState, playerRef]);
 
   const resetApp = useCallback(() => {
     setAppError(null);
@@ -252,7 +300,7 @@ function App() {
             }}
             onPushToTalk={handlePushToTalk}
             onPlayerReady={handleReady}
-            handlePlayerStateChange={handlePlayerStateChange}
+            handlePlayerStateChange={playerStateHandler}
             onLeaveRoom={leaveRoom}
             removeFromQueue={removeFromQueue}
           />

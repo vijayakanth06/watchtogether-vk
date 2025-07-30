@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import YouTube from 'react-youtube';
 import styles from '../styles/PersistentYouTubePlayer.module.css';
 
@@ -14,92 +14,190 @@ export const PersistentYouTubePlayer = React.memo(({
   const lastVideoId = useRef(null);
   const lastCurrentTime = useRef(0);
   const lastIsPlaying = useRef(false);
-  const ignoreStateChanges = useRef(false);
-  const playerInitialized = useRef(false);
+  const ignoreNextStateChange = useRef(false);
+  const syncTimeoutRef = useRef(null);
+  const isLoadingVideo = useRef(false);
 
-  const handleReady = (event) => {
-    if (playerInitialized.current) return;
-    
+  const handleReady = useCallback((event) => {
+    console.log('YouTube Player Ready');
     playerRef.current = event.target;
     setInternalReady(true);
     lastVideoId.current = videoId;
-    lastCurrentTime.current = currentTime;
+    lastCurrentTime.current = currentTime || 0;
     lastIsPlaying.current = isPlaying;
-    playerInitialized.current = true;
     onReady?.(event);
-  };
+  }, [videoId, currentTime, isPlaying, onReady]);
 
-  const handleStateChange = (event) => {
-    if (ignoreStateChanges.current) {
-      ignoreStateChanges.current = false;
+  const handleStateChange = useCallback((event) => {
+    if (ignoreNextStateChange.current) {
+      ignoreNextStateChange.current = false;
       return;
     }
-    onStateChange?.(event.data);
-  };
 
+    const state = event.data;
+    console.log('YouTube Player State Change:', state);
+    
+    // Only report meaningful state changes to parent
+    if (state === window.YT.PlayerState.PLAYING || 
+        state === window.YT.PlayerState.PAUSED || 
+        state === window.YT.PlayerState.ENDED) {
+      onStateChange?.(state);
+    }
+  }, [onStateChange]);
+
+  const handleError = useCallback((event) => {
+    console.error('YouTube Player Error:', event.data);
+    isLoadingVideo.current = false;
+  }, []);
+
+  // Sync player with props
   useEffect(() => {
-    if (!internalReady || !playerRef.current) return;
+    if (!internalReady || !playerRef.current || !videoId) return;
+
+    const player = playerRef.current;
 
     try {
-      // Only handle video changes
-      if (videoId && videoId !== lastVideoId.current) {
+      // Handle video change
+      if (videoId !== lastVideoId.current) {
+        console.log('Loading new video:', videoId);
         lastVideoId.current = videoId;
-        ignoreStateChanges.current = true;
-        playerRef.current.loadVideoById({
-          videoId,
+        isLoadingVideo.current = true;
+        ignoreNextStateChange.current = true;
+        
+        player.loadVideoById({
+          videoId: videoId,
           startSeconds: currentTime || 0
         });
-        if (isPlaying) {
-          playerRef.current.playVideo();
-        }
+        
+        // Wait a bit for video to load before setting play state
+        setTimeout(() => {
+          isLoadingVideo.current = false;
+          if (isPlaying) {
+            ignoreNextStateChange.current = true;
+            player.playVideo();
+          }
+          lastIsPlaying.current = isPlaying;
+          lastCurrentTime.current = currentTime || 0;
+        }, 1000);
+        
         return;
       }
 
-      // Handle time changes (only if significant)
-      if (Math.abs(currentTime - lastCurrentTime.current) > 2) {
-        lastCurrentTime.current = currentTime;
-        ignoreStateChanges.current = true;
-        playerRef.current.seekTo(currentTime, true);
-      }
+      // Don't sync time/play state while loading
+      if (isLoadingVideo.current) return;
 
       // Handle play/pause changes
       if (isPlaying !== lastIsPlaying.current) {
+        console.log('Play state change:', isPlaying);
         lastIsPlaying.current = isPlaying;
-        ignoreStateChanges.current = true;
-        isPlaying ? playerRef.current.playVideo() : playerRef.current.pauseVideo();
+        ignoreNextStateChange.current = true;
+        
+        if (isPlaying) {
+          player.playVideo();
+        } else {
+          player.pauseVideo();
+        }
       }
+
+      // Handle time sync (only if significant difference and not user seeking)
+      const playerCurrentTime = player.getCurrentTime();
+      const timeDifference = Math.abs(currentTime - playerCurrentTime);
+      
+      if (timeDifference > 3 && Math.abs(currentTime - lastCurrentTime.current) > 1) {
+        console.log('Syncing time:', currentTime);
+        lastCurrentTime.current = currentTime;
+        player.seekTo(currentTime, true);
+      }
+
     } catch (err) {
-      console.error("YouTube Player sync error:", err);
+      console.error('YouTube Player sync error:', err);
+      isLoadingVideo.current = false;
     }
   }, [videoId, currentTime, isPlaying, internalReady]);
+
+  // Periodic time sync to keep players in sync
+  useEffect(() => {
+    if (!internalReady || !playerRef.current || !isPlaying || isLoadingVideo.current) return;
+
+    const syncInterval = setInterval(() => {
+      try {
+        const player = playerRef.current;
+        const playerTime = player.getCurrentTime();
+        
+        // Update our last known time
+        lastCurrentTime.current = playerTime;
+        
+        // Report time updates to parent occasionally
+        if (Math.floor(playerTime) % 5 === 0) {
+          onStateChange?.(window.YT.PlayerState.PLAYING);
+        }
+      } catch (err) {
+        console.error('Time sync error:', err);
+      }
+    }, 1000);
+
+    return () => clearInterval(syncInterval);
+  }, [internalReady, isPlaying, onStateChange]);
+
+  // Clean up timeouts
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (!videoId) {
+    return (
+      <div className={styles.youTubePlayerWrapper}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          height: '100%',
+          color: '#888',
+          fontSize: '18px'
+        }}>
+          No video selected
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.youTubePlayerWrapper}>
       <YouTube
-        key={`player-${videoId || 'empty'}`} // Only remount when videoId changes
+        key={`youtube-player-${videoId}`} // Force remount on video change
         videoId={videoId}
         opts={{
           height: '100%',
           width: '100%',
           playerVars: {
-            autoplay: isPlaying ? 1 : 0,
+            autoplay: 0, // Let us control autoplay
+            controls: 1, // Enable player controls
             modestbranding: 1,
             rel: 0,
+            fs: 1, // Allow fullscreen
+            cc_load_policy: 0,
+            iv_load_policy: 3,
             enablejsapi: 1,
-            origin: window.location.origin // Important for CORS
+            origin: window.location.origin,
+            playsinline: 1
           }
         }}
         onReady={handleReady}
         onStateChange={handleStateChange}
+        onError={handleError}
         className={styles.youTubePlayerIframe}
       />
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Only update if these specific props change meaningfully
-  const videoChanged = prevProps.videoId !== nextProps.videoId;
-  const playingChanged = prevProps.isPlaying !== nextProps.isPlaying;
-  const timeChanged = Math.abs(prevProps.currentTime - nextProps.currentTime) > 2;
-  
-  return !videoChanged && !playingChanged && !timeChanged;
+  // Only re-render if these props actually change
+  return (
+    prevProps.videoId === nextProps.videoId &&
+    prevProps.isPlaying === nextProps.isPlaying &&
+    Math.abs(prevProps.currentTime - nextProps.currentTime) < 2
+  );
 });
