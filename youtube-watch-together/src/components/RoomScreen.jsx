@@ -426,6 +426,7 @@ export const RoomScreen = ({
                   message={message}
                   onMessageChange={onMessageChange}
                   onSendMessage={onSendMessage}
+                  currentUser={username}
                 />
               </div>
             )}
