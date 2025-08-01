@@ -354,14 +354,14 @@ export const RoomScreen = ({
       </main>
       
       {/* Error display */}
-      {error && (
+      {/*error && (
         <div className={`room-error-message ${styles.roomGlobalError}`}>
           <span>⚠️ {error}</span>
           <button onClick={() => window.location.reload()} type="button">
             Retry
           </button>
         </div>
-      )}
+      )*/}
 
       {/* Sidebar */}
       <aside className={`${styles.roomSidebar} ${isSidebarOpen ? styles.roomSidebarOpen : ''}`}>
