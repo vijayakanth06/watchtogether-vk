@@ -19,17 +19,25 @@ export const HomeScreen = ({
       try {
         const session = JSON.parse(sessionStr);
         setUsername(session.username || '');
+        setRoomCode(session.roomCode || '');
       } catch (e) {
         // Ignore errors
       }
     }
-  }, [setUsername]);
+  }, [setUsername, setRoomCode]);
+
+  useEffect(() => {
+    if (roomCode && username) {
+      handleJoinRoom();
+    }
+  }, [roomCode, username]);
 
   const handleCreateRoom = async () => {
     if (!username.trim()) return;
     setIsCreating(true);
     try {
       await onCreateRoom();
+      localStorage.setItem('yt_watch_together_session', JSON.stringify({ username, roomCode }));
     } finally {
       setIsCreating(false);
     }
@@ -40,6 +48,7 @@ export const HomeScreen = ({
     setIsJoining(true);
     try {
       await onJoinRoom();
+      localStorage.setItem('yt_watch_together_session', JSON.stringify({ username, roomCode }));
     } finally {
       setIsJoining(false);
     }
