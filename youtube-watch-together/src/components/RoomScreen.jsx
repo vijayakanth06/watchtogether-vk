@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { FiChevronLeft, FiCopy, FiMessageSquare, FiUsers } from 'react-icons/fi';
 import { VideoSearch } from './VideoSearch';
 import { VideoQueue } from './VideoQueue';
@@ -6,6 +6,85 @@ import { ChatWindow } from './ChatWindow';
 import { VoiceChat } from './VoiceChat';
 import { PersistentYouTubePlayer } from './PersistentYouTubePlayer';
 import styles from '../styles/RoomScreen.module.css';
+
+// Memoized RoomInfoPanel component
+const RoomInfoPanel = React.memo(({ roomCode, username, onCopyCode, onLeaveRoom, copyFeedback }) => (
+  <div className={styles.roomInfoPanel}>
+    <div className={styles.roomCodeContainer}>
+      <span className={styles.roomCodeDisplay}>{roomCode}</span>
+      <button 
+        onClick={onCopyCode} 
+        className={styles.roomCopyCodeBtn}
+        aria-label="Copy room code"
+        title="Copy room code"
+        type="button"
+      >
+        <FiCopy />
+      </button>
+      {copyFeedback && (
+        <div className={styles.roomCopyFeedback}>{copyFeedback}</div>
+      )}
+    </div>
+    
+    <div className={styles.roomUserInfo}>
+      <span>Welcome, <strong>{username}</strong></span>
+      <button 
+        onClick={onLeaveRoom} 
+        className={styles.roomLeaveBtn}
+        type="button"
+      >
+        Leave Room
+      </button>
+    </div>
+  </div>
+));
+
+// Memoized MembersList component
+const MembersList = React.memo(({ users, currentUsername }) => {
+  const userEntries = Object.entries(users);
+  const speakingCount = userEntries.filter(([, user]) => user.isSpeaking).length;
+  
+  return (
+    <div className={styles.roomMembersContent}>
+      <div className={styles.roomMembersHeader}>
+        <h4>Members Online ({userEntries.length})</h4>
+        {speakingCount > 0 && (
+          <span className={styles.roomSpeakingCount}>
+            {speakingCount} speaking
+          </span>
+        )}
+      </div>
+      
+      <ul className={styles.roomMembersList}>
+        {userEntries.map(([id, user]) => (
+          <li 
+            key={id} 
+            className={`${styles.roomMemberItem} ${user.isSpeaking ? styles.roomMemberSpeaking : ''}`}
+          >
+            <div className={styles.roomMemberInfo}>
+              <div className={styles.roomMemberAvatar}>
+                {user.name?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+              <span className={styles.roomMemberName}>{user.name}</span>
+              {user.name === currentUsername && (
+                <span className={styles.roomYouBadge}>You</span>
+              )}
+            </div>
+            
+            <div className={styles.roomMemberStatus}>
+              <div className={`${styles.roomStatusDot} ${
+                user.isSpeaking ? styles.roomStatusSpeaking : styles.roomStatusOnline
+              }`}></div>
+              {user.isSpeaking && (
+                <span className={styles.roomSpeakingBadge}>Speaking</span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
 
 export const RoomScreen = ({
   roomCode,
@@ -41,14 +120,13 @@ export const RoomScreen = ({
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
       
-      // Auto-open sidebar on desktop, but keep user preference on mobile
       if (!mobile && window.innerWidth >= 1024) {
         setIsSidebarOpen(true);
       }
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initial check
+    handleResize();
     
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -56,13 +134,11 @@ export const RoomScreen = ({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Toggle sidebar with Ctrl+B
       if (e.ctrlKey && e.key === 'b') {
         e.preventDefault();
         setIsSidebarOpen(prev => !prev);
       }
       
-      // Switch tabs with Ctrl+1/2
       if (e.ctrlKey && e.key === '1') {
         e.preventDefault();
         setActiveTab('chat');
@@ -72,7 +148,6 @@ export const RoomScreen = ({
         setActiveTab('members');
       }
       
-      // Close sidebar with Escape on mobile
       if (e.key === 'Escape' && isMobile && isSidebarOpen) {
         setIsSidebarOpen(false);
       }
@@ -82,21 +157,16 @@ export const RoomScreen = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isMobile, isSidebarOpen]);
 
-  // Enhanced add to queue handler with notifications
   const handleAddToQueue = useCallback((video) => {
     try {
       onAddToQueue(video);
-      
-      // Show brief success feedback
       showNotification(`Added "${video.title.substring(0, 30)}..." to queue`, 'success');
-      
     } catch (error) {
       console.error('Error adding video to queue:', error);
       showNotification('Failed to add video to queue', 'error');
     }
   }, [onAddToQueue]);
 
-  // Notification system
   const showNotification = (message, type = 'info') => {
     const notification = document.createElement('div');
     notification.className = `room-notification room-notification-${type}`;
@@ -124,7 +194,6 @@ export const RoomScreen = ({
     }, 3000);
   };
 
-  // Video selection handler
   const handleSelectVideo = useCallback((videoId) => {
     if (videoId !== playbackState.currentVideo) {
       updatePlaybackState({
@@ -133,14 +202,12 @@ export const RoomScreen = ({
         currentTime: 0
       });
       
-      // Close sidebar on mobile when video starts
       if (isMobile) {
         setIsSidebarOpen(false);
       }
     }
   }, [playbackState.currentVideo, updatePlaybackState, isMobile]);
 
-  // Video deletion handler
   const handleDeleteVideo = useCallback((videoId) => {
     const isCurrentlyPlaying = playbackState.currentVideo === videoId;
     const currentIndex = videoQueue.findIndex(v => v.id === videoId);
@@ -148,14 +215,11 @@ export const RoomScreen = ({
     removeFromQueue(videoId);
 
     if (isCurrentlyPlaying && videoQueue.length > 1) {
-      // Find next video to play
       let nextVideo = null;
       
-      // Try to get the video that was after the deleted one
       if (currentIndex < videoQueue.length - 1) {
         nextVideo = videoQueue[currentIndex + 1];
       } 
-      // If that was the last video, try to get the first video
       else if (currentIndex > 0) {
         nextVideo = videoQueue[0];
       }
@@ -176,12 +240,10 @@ export const RoomScreen = ({
     }
   }, [playbackState.currentVideo, removeFromQueue, updatePlaybackState, videoQueue]);
 
-  // Sidebar toggle handler
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
 
-  // Copy room code handler
   const handleCopyCode = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(roomCode);
@@ -194,7 +256,6 @@ export const RoomScreen = ({
     }
   }, [roomCode]);
 
-  // Leave room handler
   const handleLeaveRoom = useCallback(() => {
     if (confirm('Are you sure you want to leave the room?')) {
       localStorage.removeItem('yt_watch_together_session');
@@ -202,7 +263,6 @@ export const RoomScreen = ({
     }
   }, [onLeaveRoom]);
 
-  // Clear queue handler
   const handleClearQueue = useCallback(() => {
     if (videoQueue.length === 0) return;
     
@@ -212,90 +272,25 @@ export const RoomScreen = ({
     }
   }, [videoQueue, removeFromQueue]);
 
-  // Enhanced members list component
-  const MembersList = React.memo(({ users }) => {
-    const userEntries = Object.entries(users);
-    const speakingCount = userEntries.filter(([, user]) => user.isSpeaking).length;
-    
-    return (
-      <div className={styles.roomMembersContent}>
-        <div className={styles.roomMembersHeader}>
-          <h4>Members Online ({userEntries.length})</h4>
-          {speakingCount > 0 && (
-            <span className={styles.roomSpeakingCount}>
-              {speakingCount} speaking
-            </span>
-          )}
-        </div>
-        
-        <ul className={styles.roomMembersList}>
-          {userEntries.map(([id, user]) => (
-            <li 
-              key={id} 
-              className={`${styles.roomMemberItem} ${user.isSpeaking ? styles.roomMemberSpeaking : ''}`}
-            >
-              <div className={styles.roomMemberInfo}>
-                <div className={styles.roomMemberAvatar}>
-                  {user.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-                <span className={styles.roomMemberName}>{user.name}</span>
-                {user.name === username && (
-                  <span className={styles.roomYouBadge}>You</span>
-                )}
-              </div>
-              
-              <div className={styles.roomMemberStatus}>
-                <div className={`${styles.roomStatusDot} ${
-                  user.isSpeaking ? styles.roomStatusSpeaking : styles.roomStatusOnline
-                }`}></div>
-                {user.isSpeaking && (
-                  <span className={styles.roomSpeakingBadge}>Speaking</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  });
+  // Memoize the RoomInfoPanel component with its props
+  const memoizedRoomInfoPanel = useMemo(() => (
+    <RoomInfoPanel 
+      roomCode={roomCode}
+      username={username}
+      onCopyCode={handleCopyCode}
+      onLeaveRoom={handleLeaveRoom}
+      copyFeedback={copyFeedback}
+    />
+  ), [roomCode, username, copyFeedback]);
 
-  // Room info panel component
-  const RoomInfoPanel = React.memo(({ roomCode, username, onCopyCode, onLeaveRoom, copyFeedback }) => (
-    <div className={styles.roomInfoPanel}>
-      <div className={styles.roomCodeContainer}>
-        <span className={styles.roomCodeDisplay}>{roomCode}</span>
-        <button 
-          onClick={onCopyCode} 
-          className={styles.roomCopyCodeBtn}
-          aria-label="Copy room code"
-          title="Copy room code"
-          type="button"
-        >
-          <FiCopy />
-        </button>
-        {copyFeedback && (
-          <div className={styles.roomCopyFeedback}>{copyFeedback}</div>
-        )}
-      </div>
-      
-      <div className={styles.roomUserInfo}>
-        <span>Welcome, <strong>{username}</strong></span>
-        <button 
-          onClick={onLeaveRoom} 
-          className={styles.roomLeaveBtn}
-          type="button"
-        >
-          Leave Room
-        </button>
-      </div>
-    </div>
-  ));
+  // Memoize the MembersList component with its props
+  const memoizedMembersList = useMemo(() => (
+    <MembersList users={users} currentUsername={username} />
+  ), [users, username]);
 
   return (
     <div className={styles.roomScreenWrapper}>
-      {/* Main Content Area */}
       <main className={styles.roomMainContent}>
-        {/* Search Section */}
         <div className={styles.roomTopSearchContainer}>
           <VideoSearch
             onSearchChange={onSearchChange}
@@ -305,7 +300,6 @@ export const RoomScreen = ({
           />
         </div>
         
-        {/* Video Player Section */}
         <div className={styles.roomPlayerContainer}>
           {playbackState.currentVideo ? (
             <PersistentYouTubePlayer
@@ -335,7 +329,6 @@ export const RoomScreen = ({
           )}
         </div>
         
-        {/* Queue Section */}
         <div className={styles.roomBottomQueueContainer}>
           <div className={styles.roomQueueHeader}>
             <h3>
@@ -365,9 +358,7 @@ export const RoomScreen = ({
         </div>
       </main>
 
-      {/* Sidebar */}
       <aside className={`${styles.roomSidebar} ${isSidebarOpen ? styles.roomSidebarOpen : ''}`}>
-        {/* Sidebar Toggle Button */}
         <button 
           ref={sidebarToggleRef}
           className={styles.roomSidebarToggle}
@@ -384,18 +375,9 @@ export const RoomScreen = ({
           />
         </button>
         
-        {/* Sidebar Content */}
         <div className={styles.roomSidebarInner}>
-          {/* Room Info Panel */}
-          <RoomInfoPanel 
-            roomCode={roomCode}
-            username={username}
-            onCopyCode={handleCopyCode}
-            onLeaveRoom={handleLeaveRoom}
-            copyFeedback={copyFeedback}
-          />
+          {memoizedRoomInfoPanel}
 
-          {/* Tab Navigation */}
           <nav className={styles.roomTabNav} role="tablist">
             <button 
               onClick={() => setActiveTab('chat')} 
@@ -438,7 +420,6 @@ export const RoomScreen = ({
             </button>
           </nav>
 
-          {/* Tab Panels */}
           <div className={styles.roomPanels}>
             {activeTab === 'chat' && (
               <div 
@@ -464,12 +445,11 @@ export const RoomScreen = ({
                 aria-labelledby="room-members-tab" 
                 className={styles.roomPanel}
               >
-                <MembersList users={users} />
+                {memoizedMembersList}
               </div>
             )}
           </div>
           
-          {/* Voice Chat Bar */}
           <div className={styles.roomVoiceChatBar}>
             <VoiceChat
               users={users}
@@ -480,7 +460,6 @@ export const RoomScreen = ({
         </div>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && isMobile && (
         <div 
           className={styles.roomSidebarOverlay}
@@ -489,7 +468,6 @@ export const RoomScreen = ({
         />
       )}
 
-      {/* Error Display */}
       {error && (
         <div className={`room-error-message ${styles.roomGlobalError}`}>
           <span>⚠️ {error}</span>
@@ -510,7 +488,6 @@ export const RoomScreen = ({
         </div>
       )}
 
-      {/* Notification Styles */}
       <style jsx>{`
         @keyframes slideInRight {
           from {
