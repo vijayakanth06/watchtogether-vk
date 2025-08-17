@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiPlay, FiTrash2 } from 'react-icons/fi';
+import { FiPlay, FiTrash2, FiFilm } from 'react-icons/fi';
 import styles from '../styles/VideoQueue.module.css';
 
 /**
@@ -24,7 +24,7 @@ export const VideoQueue = React.memo(({ videos, currentVideo, onSelectVideo, onD
     return (
       <div className={`${styles.videoQueueWrapper} ${styles.emptyQueueState}`}>
         <div className={styles.emptyQueueContent}>
-          <div className={styles.emptyQueueIcon}>📺</div>
+          <div className={styles.emptyQueueIcon}><FiFilm /></div>
           <p className={styles.emptyQueueTitle}>The queue is empty.</p>
           <span className={styles.emptyQueueSubtitle}>Search for a video to get started.</span>
         </div>

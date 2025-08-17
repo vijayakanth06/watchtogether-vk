@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { FiChevronLeft, FiCopy, FiMessageSquare, FiUsers } from 'react-icons/fi';
+import { FiChevronLeft, FiCopy, FiMessageSquare, FiUsers, FiFilm, FiSearch } from 'react-icons/fi';
 import { VideoSearch } from './VideoSearch';
 import { VideoQueue } from './VideoQueue';
 import { ChatWindow } from './ChatWindow';
@@ -312,7 +312,7 @@ export const RoomScreen = ({
           ) : (
             <div className={styles.roomPlayerPlaceholder}>
               <div className={styles.roomPlaceholderContent}>
-                <div className={styles.roomPlaceholderIcon}>🎥</div>
+                <div className={styles.roomPlaceholderIcon}><FiFilm /></div>
                 <h3>No video playing</h3>
                 <p>Search for a video and add it to the queue to start watching together.</p>
                 <div className={styles.roomQuickActions}>
@@ -321,7 +321,7 @@ export const RoomScreen = ({
                     onClick={() => document.querySelector('input[placeholder*="Search"]')?.focus()}
                     type="button"
                   >
-                    🔍 Start Searching
+                    <FiSearch /> Start Searching
                   </button>
                 </div>
               </div>

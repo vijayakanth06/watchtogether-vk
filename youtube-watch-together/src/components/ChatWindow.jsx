@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { FiMessageSquare } from 'react-icons/fi';
+import { FaPaperPlane } from 'react-icons/fa';
 import styles from '../styles/ChatWindow.module.css';
 
 export const ChatWindow = ({
@@ -112,7 +114,7 @@ export const ChatWindow = ({
       <div className={styles.chatMessagesContainer}>
         {messageGroups.length === 0 ? (
           <div className={styles.chatEmptyState}>
-            <div className={styles.emptyStateIcon}>💬</div>
+            <div className={styles.emptyStateIcon}><FiMessageSquare /></div>
             <p className={styles.emptyStateText}>No messages yet</p>
             <p className={styles.emptyStateSubtext}>Start the conversation!</p>
           </div>
@@ -124,7 +126,7 @@ export const ChatWindow = ({
                 group.isCurrentUser ? styles.messageGroupRight : styles.messageGroupLeft
               }`}
             >
-              {/* User avatar and name (only for other users on left side) */}
+              {/* Avatar and username for other users ONLY (left-aligned) */}
               {!group.isCurrentUser && (
                 <div className={styles.messageAvatar}>
                   <div 
@@ -137,7 +139,7 @@ export const ChatWindow = ({
               )}
               
               <div className={styles.messageContent}>
-                {/* Username (only for other users and at start of group) */}
+                {/* Username ONLY for other users (receivers), NOT for current user */}
                 {!group.isCurrentUser && (
                   <div className={styles.messageUsername}>
                     {group.user}
@@ -168,9 +170,6 @@ export const ChatWindow = ({
                   {formatTime(group.messages[group.messages.length - 1].timestamp)}
                 </div>
               </div>
-              
-              {/* Spacer for current user messages (on right side) */}
-              {group.isCurrentUser && <div className={styles.messageAvatarSpacer} />}
             </div>
           ))
         )}
@@ -196,10 +195,7 @@ export const ChatWindow = ({
             aria-label="Send message"
             title="Send message (Enter)"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M22 2L11 13" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22 2L15 22L11 13L2 9L22 2Z" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <FaPaperPlane className={styles.sendIcon} />
           </button>
         </div>
       </div>

@@ -47,20 +47,24 @@
   color: var(--light-gray);
 }
 
-/* Message groups */
+/* Message groups - Base structure */
 .messageGroup {
-  display: flex;
-  gap: 0.875rem;
   animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   margin-bottom: 0.5rem;
 }
 
+/* Receiver messages (left-aligned with avatar structure) */
 .messageGroupLeft {
+  display: flex;
+  gap: 0.875rem;
   justify-content: flex-start;
 }
 
+/* Sender messages (right-aligned, no avatar structure) */
 .messageGroupRight {
+  display: flex;
   justify-content: flex-end;
+  /* No gap or flex structure - content goes directly to right edge */
 }
 
 @keyframes messageSlideIn {
@@ -74,7 +78,7 @@
   }
 }
 
-/* Avatar */
+/* Avatar - only for receivers */
 .messageAvatar {
   flex-shrink: 0;
   align-self: flex-end;
@@ -106,17 +110,27 @@
     0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Remove avatar spacer - not needed anymore */
 .messageAvatarSpacer {
-  width: 38px;
-  flex-shrink: 0;
+  display: none;
 }
 
-/* Message content */
+/* Message content containers */
 .messageContent {
-  max-width: 65%;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+}
+
+/* Receiver message content */
+.messageGroupLeft .messageContent {
+  max-width: 65%;
+}
+
+/* Sender message content - flush right, no width restriction from flex */
+.messageGroupRight .messageContent {
+  max-width: 65%;
+  align-items: flex-end; /* Align content to right edge */
 }
 
 .messageUsername {
@@ -132,6 +146,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+/* Sender message bubbles - align to right */
+.messageGroupRight .messageBubbles {
+  align-items: flex-end;
 }
 
 /* Message bubbles */
@@ -150,7 +169,6 @@
   background: linear-gradient(135deg, var(--primary-red) 0%, #d32f2f 100%);
   color: white;
   border-bottom-right-radius: 6px;
-  margin-left: auto;
   box-shadow: 
     0 4px 16px rgba(229, 9, 20, 0.2),
     0 2px 8px rgba(0, 0, 0, 0.1);
@@ -347,7 +365,8 @@
     gap: 1rem;
   }
   
-  .messageContent {
+  .messageGroupLeft .messageContent,
+  .messageGroupRight .messageContent {
     max-width: 80%;
   }
   
@@ -360,10 +379,6 @@
     width: 34px;
     height: 34px;
     font-size: 0.9rem;
-  }
-  
-  .messageAvatarSpacer {
-    width: 34px;
   }
   
   .chatInputContainer {
