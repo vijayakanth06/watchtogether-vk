@@ -1,0 +1,143 @@
+.homeScreenWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.homeScreenContainer {
+  background: var(--dark-gray);
+  padding: 2.5rem 3rem;
+  border-radius: 8px;
+  box-shadow: var(--dark-shadow);
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+}
+
+.homeScreenTitle {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  color: var(--white);
+}
+
+.homeFormGroup {
+  margin-bottom: 1.5rem;
+}
+
+.homeUsernameInput,
+.homeRoomCodeInput {
+  background: var(--mid-gray);
+  border: 1px solid var(--light-gray);
+  color: var(--white);
+  padding: 12px 15px;
+  border-radius: 5px;
+  width: 100%;
+  font-family: var(--font-main);
+  transition: all 0.2s ease;
+}
+
+.homeUsernameInput:focus,
+.homeRoomCodeInput:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+}
+
+.homeButtonGroup {
+  margin-bottom: 1.5rem;
+}
+
+.homeCreateButton {
+  width: 100%;
+  background: var(--primary-red);
+  color: var(--white);
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.homeCreateButton:hover:not(:disabled) {
+  background: var(--dark-red);
+}
+
+.homeCreateButton:disabled {
+  background: var(--light-gray);
+  cursor: not-allowed;
+}
+
+.homeJoinDivider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--light-gray);
+  margin-bottom: 1.5rem;
+}
+
+.homeJoinDivider::before, 
+.homeJoinDivider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--mid-gray);
+}
+
+.homeJoinDivider:not(:empty)::before {
+  margin-right: .25em;
+}
+
+.homeJoinDivider:not(:empty)::after {
+  margin-left: .25em;
+}
+
+.homeJoinGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.homeJoinButton {
+  background: var(--primary-red);
+  color: var(--white);
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.homeJoinButton:hover:not(:disabled) {
+  background: var(--dark-red);
+}
+
+.homeJoinButton:disabled {
+  background: var(--light-gray);
+  cursor: not-allowed;
+}
+
+.homeScreenError {
+  background: rgba(229, 9, 20, 0.1);
+  border: 1px solid var(--primary-red);
+  color: var(--primary-red);
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .homeScreenContainer {
+    padding: 2rem 1.5rem;
+    max-width: 90%;
+  }
+  
+  .homeJoinGroup {
+    flex-direction: column;
+  }
+}
