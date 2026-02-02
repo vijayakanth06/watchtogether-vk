@@ -25,16 +25,15 @@
           ".validate": "newData.hasChildren(['currentVideo','isPlaying','currentTime','lastUpdated']) &&(newData.child('currentVideo').isString() || newData.child('currentVideo').val() === null) &&newData.child('isPlaying').isBoolean() &&newData.child('currentTime').isNumber() &&newData.child('currentTime').val() >= 0 &&newData.child('lastUpdated').isNumber() &&newData.child('lastUpdated').val() <= now",
           ".write": "auth != null"
         },
-
         "users": {
           "$userId": {
-            ".validate": "newData.hasChildren(['name','isSpeaking','joinedAt']) &&newData.child('name').isString() &&newData.child('isSpeaking').isBoolean() &&newData.child('joinedAt').isNumber() &&newData.child('joinedAt').val() <= now",
-            ".write": "auth != null && auth.uid == $userId"
+            ".validate": "newData.hasChildren(['name','isSpeaking','joinedAt']) && newData.child('name').isString() && newData.child('isSpeaking').isBoolean() && newData.child('joinedAt').isNumber() && newData.child('joinedAt').val() <= now",
+            ".write": "auth != null"
           }
         }
       }
     },
-    ".read": false,
-    ".write": false
+    ".read": "auth != null",
+    ".write": "auth != null"
   }
 }

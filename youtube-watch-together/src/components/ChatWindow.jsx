@@ -13,8 +13,6 @@ export const ChatWindow = ({
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  console.log('ChatWindow props:', { messages, currentUser });
-
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -72,9 +70,6 @@ export const ChatWindow = ({
 
   // Enhanced message grouping with better time logic
   const groupMessages = (messages) => {
-    console.log('Grouping messages, currentUser:', currentUser);
-    console.log('Messages:', messages);
-    
     const grouped = [];
     let currentGroup = null;
 
@@ -88,7 +83,6 @@ export const ChatWindow = ({
         timeDiff > 300000; // 5 minutes
 
       const isCurrentUser = msg.user === currentUser;
-      console.log(`Message from ${msg.user}, current user: ${currentUser}, isCurrentUser: ${isCurrentUser}`);
 
       if (shouldStartNewGroup) {
         currentGroup = {
@@ -103,7 +97,6 @@ export const ChatWindow = ({
       }
     });
 
-    console.log('Grouped messages:', grouped);
     return grouped;
   };
 

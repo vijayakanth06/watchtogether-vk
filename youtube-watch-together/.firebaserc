@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "watchtogether-vk"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

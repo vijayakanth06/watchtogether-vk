@@ -28,7 +28,6 @@ export const useRoom = (roomCode, userId, username) => {
 
   const handleError = useCallback((error) => {
     console.error('Room Error:', error);
-    setError(error.message || 'An error occurred. Please try again.');
   }, []);
 
   const playNextVideo = useCallback(async () => {
