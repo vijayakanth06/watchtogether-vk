@@ -1,0 +1,28 @@
+.themeToggleBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.themeToggleBtn:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--primary-green);
+  transform: scale(1.05);
+}
+
+.themeToggleBtn:active {
+  transform: scale(0.98);
+}
+
+.themeToggleBtn:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}

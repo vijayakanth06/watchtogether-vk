@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ===== Root Variables - New Theme ===== */
+:root {
+  /* Primary Colors - Green Theme */
+  --primary-green: #22C55E;
+  --primary-green-dark: #16a34a;
+  --primary-green-darker: #15803d;
+  
+  /* Secondary Colors - Cyan Theme */
+  --secondary-cyan: #38BDF8;
+  --secondary-cyan-dark: #0284c7;
+  
+  /* Background Colors */
+  --bg-navy-900: #0F172A;
+  --bg-navy-950: #020617;
+  --bg-dark: #1a2332;
+  --bg-darker: #0d1117;
+  
+  /* Text Colors */
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-light: #cbd5e1;
+  
+  /* Border & Accent */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-lighter: rgba(255, 255, 255, 0.05);
+  --accent-glow: rgba(34, 197, 94, 0.3);
+  
+  /* Chat/UI Specific */
+  --user-bubble-bg: #22C55E;
+  --user-bubble-text: #0F172A;
+  --other-bubble-bg: #1e293b;
+  --other-bubble-text: #F8FAFC;
+  
+  /* Font */
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  
+  /* Spacing & Sizing */
+  --sidebar-width: 380px;
+  --header-height: 70px;
+  --transition-speed: 0.3s;
+}
+
+/* ===== Global Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-navy-900);
+}
+
+body {
+  background-color: var(--bg-navy-900);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+.appMainContainer {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-navy-900);
+  position: relative;
+}
+
+.themeToggleContainer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* ===== Input Styles ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 12px 15px;
+  border-radius: 8px;
+  width: 100%;
+  font-family: var(--font-main);
+  transition: all 0.3s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+/* ===== Button Styles ===== */
+button {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-main);
+}
+
+button:hover:not(:disabled) {
+  background: var(--primary-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== Error Fallback ===== */
+.appErrorFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, var(--bg-navy-900) 0%, var(--bg-navy-950) 100%);
+}
+
+.appErrorFallback h2 {
+  margin-bottom: 1rem;
+  color: var(--primary-green);
+  font-size: 2rem;
+}
+
+.appErrorFallback pre {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  max-width: 600px;
+  overflow: auto;
+  color: var(--text-light);
+}
+
+.appErrorFallback button {
+  margin-top: 1rem;
+}
+
+.globalError {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(56, 189, 248, 0.9));
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+  animation: slideInDown 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.globalError button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ===== Animations ===== */
+@keyframes slideInDown {
+  from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* ===== Focus Visible States ===== */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 90vw;
+    --transition-speed: 0.2s;
+  }
+}

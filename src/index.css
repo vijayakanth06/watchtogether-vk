@@ -1,0 +1,304 @@
+/* ===== Color Theme Variables ===== */
+:root {
+  /* Primary Colors - Green Theme */
+  --primary-green: #22C55E;
+  --primary-green-dark: #16a34a;
+  --primary-green-darker: #15803d;
+  
+  /* Secondary Colors - Cyan Theme */
+  --secondary-cyan: #38BDF8;
+  --secondary-cyan-dark: #0284c7;
+  
+  /* Background Colors */
+  --bg-navy-900: #0F172A;
+  --bg-navy-950: #020617;
+  --bg-dark: #1a1a2e;
+  
+  /* Text Colors */
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  
+  /* Border & Accent */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-lighter: rgba(255, 255, 255, 0.05);
+  --accent-glow: rgba(34, 197, 94, 0.3);
+}
+
+/* Light Mode Colors */
+.light-mode {
+  --primary-green: #15803d;
+  --primary-green-dark: #166534;
+  --primary-green-darker: #1a7341;
+  
+  --secondary-cyan: #0369a1;
+  --secondary-cyan-dark: #164e63;
+  
+  --bg-navy-900: #f8fafc;
+  --bg-navy-950: #f1f5f9;
+  --bg-dark: #ffffff;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  
+  --border-light: rgba(0, 0, 0, 0.1);
+  --border-lighter: rgba(0, 0, 0, 0.05);
+  --accent-glow: rgba(21, 128, 61, 0.2);
+}
+
+/* Dark Mode Colors (Default) */
+.dark-mode {
+  --primary-green: #22C55E;
+  --primary-green-dark: #16a34a;
+  --primary-green-darker: #15803d;
+  
+  --secondary-cyan: #38BDF8;
+  --secondary-cyan-dark: #0284c7;
+  
+  --bg-navy-900: #0F172A;
+  --bg-navy-950: #020617;
+  --bg-dark: #1a1a2e;
+  
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-lighter: rgba(255, 255, 255, 0.05);
+  --accent-glow: rgba(34, 197, 94, 0.3);
+}
+
+/* ===== Base Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-navy-900);
+}
+
+.light-mode html {
+  background-color: #f8fafc;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-navy-900);
+  color: var(--text-main);
+}
+
+.light-mode body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* ===== Animations ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes float-delay {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(20px) rotate(-5deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.5); }
+}
+
+.animate-float { animation: float 8s ease-in-out infinite; }
+.animate-float-delay { animation: float-delay 10s ease-in-out infinite; }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-shimmer { animation: shimmer 2s infinite; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* ===== Scrollbar Styles ===== */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Glass Morphism Effect ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+/* ===== Gradient Text ===== */
+.gradient-text {
+  background: linear-gradient(135deg, #22C55E 0%, #38BDF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Button Base Styles ===== */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}
+
+/* ===== Primary Button ===== */
+.btn-primary {
+  background-color: var(--primary-green);
+  color: white;
+  padding: 10px 24px;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ===== Secondary Button ===== */
+.btn-secondary {
+  background-color: var(--secondary-cyan);
+  color: white;
+  padding: 10px 24px;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-cyan-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(56, 189, 248, 0.3);
+}
+
+/* ===== Card Styles ===== */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary-green);
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.1);
+}
+
+/* ===== Input Styles ===== */
+input, textarea, select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-main);
+  padding: 10px 12px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.light-mode input,
+.light-mode textarea,
+.light-mode select {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #0f172a;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.light-mode input:focus,
+.light-mode textarea:focus,
+.light-mode select:focus {
+  background: white;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ===== Selection ===== */
+::selection {
+  background-color: rgba(34, 197, 94, 0.3);
+  color: var(--text-main);
+}
+
+/* ===== Scrollbar for entire page ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-green-dark);
+}

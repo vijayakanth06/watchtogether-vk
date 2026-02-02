@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true,
+      "$roomCode": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+
+        "queue": {
+          "$videoId": {
+            ".validate": "newData.hasChildren(['title','url','thumbnail','addedBy','addedAt']) && newData.child('title').isString() &&newData.child('url').isString() &&newData.child('url').val().matches(/^https:\\/\\/www\\.youtube\\.com\\/watch\\?v=[a-zA-Z0-9_-]{11}$/) &&newData.child('thumbnail').isString() &&newData.child('addedBy').isString() &&newData.child('addedAt').isNumber() &&newData.child('addedAt').val() <= now",
+            ".write": "auth != null"
+          }
+        },
+
+        "chat": {
+          "$messageId": {
+            ".validate": "newData.hasChildren(['text','user','timestamp']) &&newData.child('text').isString() &&newData.child('text').val().length > 0 &&newData.child('text').val().length < 500 &&newData.child('user').isString() &&newData.child('timestamp').isNumber() &&newData.child('timestamp').val() <= now",
+            ".write": "auth != null"
+          }
+        },
+
+        "state": {
+          ".validate": "newData.hasChildren(['currentVideo','isPlaying','currentTime','lastUpdated']) &&(newData.child('currentVideo').isString() || newData.child('currentVideo').val() === null) &&newData.child('isPlaying').isBoolean() &&newData.child('currentTime').isNumber() &&newData.child('currentTime').val() >= 0 &&newData.child('lastUpdated').isNumber() &&newData.child('lastUpdated').val() <= now",
+          ".write": "auth != null"
+        },
+        "users": {
+          "$userId": {
+            ".validate": "newData.hasChildren(['name','isSpeaking','joinedAt']) && newData.child('name').isString() && newData.child('isSpeaking').isBoolean() && newData.child('joinedAt').isNumber() && newData.child('joinedAt').val() <= now",
+            ".write": "auth != null"
+          }
+        }
+      }
+    },
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}

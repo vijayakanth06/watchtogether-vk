@@ -1,0 +1,183 @@
+.homeScreenWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--bg-navy-900) 0%, var(--bg-navy-950) 100%);
+}
+
+.light-mode .homeScreenWrapper {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.homeScreenContainer {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  padding: 2.5rem 3rem;
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.1);
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+}
+
+.light-mode .homeScreenContainer {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--primary-green);
+  box-shadow: 0 8px 32px rgba(21, 128, 61, 0.15);
+}
+
+.homeScreenTitle {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  color: var(--text-main);
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.homeFormGroup {
+  margin-bottom: 1.5rem;
+}
+
+.homeUsernameInput,
+.homeRoomCodeInput {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 12px 15px;
+  border-radius: 8px;
+  width: 100%;
+  font-family: var(--font-main);
+  transition: all 0.3s ease;
+}
+
+.light-mode .homeUsernameInput,
+.light-mode .homeRoomCodeInput {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.homeUsernameInput::placeholder,
+.homeRoomCodeInput::placeholder {
+  color: var(--text-muted);
+}
+
+.homeUsernameInput:focus,
+.homeRoomCodeInput:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.light-mode .homeUsernameInput:focus,
+.light-mode .homeRoomCodeInput:focus {
+  background: white;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.homeButtonGroup {
+  margin-bottom: 1.5rem;
+}
+
+.homeCreateButton {
+  width: 100%;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.homeCreateButton:hover:not(:disabled) {
+  background: var(--primary-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+}
+
+.homeCreateButton:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.homeJoinDivider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.homeJoinDivider::before, 
+.homeJoinDivider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.homeJoinDivider:not(:empty)::before {
+  margin-right: .25em;
+}
+
+.homeJoinDivider:not(:empty)::after {
+  margin-left: .25em;
+}
+
+.homeJoinGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.homeJoinButton {
+  background: var(--primary-green);
+  color: var(--text-main);
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.homeJoinButton:hover:not(:disabled) {
+  background: var(--primary-green-dark);
+}
+
+.homeJoinButton:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.homeScreenError {
+  background: rgba(229, 9, 20, 0.1);
+  border: 1px solid var(--primary-green);
+  color: var(--primary-green);
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .homeScreenContainer {
+    padding: 2rem 1.5rem;
+    max-width: 90%;
+  }
+  
+  .homeJoinGroup {
+    flex-direction: column;
+  }
+}
