@@ -79,27 +79,6 @@
   --accent-glow: rgba(37, 99, 235, 0.25);
 }
 
-/* Dark Mode Colors (Optional) */
-.dark-mode {
-  --primary-green: #3B82F6;
-  --primary-green-dark: #2563EB;
-  --primary-green-darker: #1D4ED8;
-
-  --secondary-cyan: #60A5FA;
-  --secondary-cyan-dark: #3B82F6;
-
-  --bg-navy-900: #0F172A;
-  --bg-navy-950: #020617;
-  --bg-dark: #1E293B;
-
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-
-  --border-light: rgba(59, 130, 246, 0.2);
-  --border-lighter: rgba(59, 130, 246, 0.1);
-  --accent-glow: rgba(59, 130, 246, 0.3);
-}
-
 /* ===== Base Styles ===== */
 * {
   margin: 0;

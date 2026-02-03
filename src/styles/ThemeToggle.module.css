@@ -1,15 +1,6 @@
 .themeToggleBtn {
-  background: transparent;
-  border: none;
-  color: var(--text-main);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
+  /* Hidden - only light mode is available */
+  display: none;
 }
 
 .themeToggleBtn:hover {

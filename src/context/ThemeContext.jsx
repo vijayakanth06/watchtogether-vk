@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
@@ -11,33 +11,17 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(() => {
-    // Load preference from localStorage
-    const saved = localStorage.getItem('theme-preference');
-    if (saved) {
-      return saved === 'dark';
-    }
-    // Default to dark mode, or check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Always use light mode - no dark mode option
+  const isDark = false;
 
   useEffect(() => {
-    // Save preference to localStorage
-    localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
-    
-    // Update document class
-    if (isDark) {
-      document.documentElement.classList.add('dark-mode');
-      document.documentElement.classList.remove('light-mode');
-    } else {
-      document.documentElement.classList.add('light-mode');
-      document.documentElement.classList.remove('dark-mode');
-    }
-  }, [isDark]);
+    // Always apply light mode
+    document.documentElement.classList.add('light-mode');
+    document.documentElement.classList.remove('dark-mode');
+  }, []);
 
-  const toggleTheme = () => {
-    setIsDark(prev => !prev);
-  };
+  // Keep toggleTheme function for API compatibility, but it does nothing
+  const toggleTheme = () => {};
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
