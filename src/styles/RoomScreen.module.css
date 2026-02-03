@@ -1,4 +1,4 @@
-/* Room Screen Layout - Responsive with smooth transitions */
+/* Room Screen Layout - Premium with smooth transitions */
 
 .roomScreenWrapper {
   display: flex;
@@ -6,11 +6,11 @@
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: var(--bg-navy-900);
+  background: linear-gradient(135deg, var(--bg-navy-900) 0%, var(--bg-navy-950) 100%);
 }
 
 .light-mode .roomScreenWrapper {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
 /* Main Content Area */
@@ -19,26 +19,26 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  min-width: 0; /* Prevents flex item from overflowing */
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  background: var(--bg-navy-900);
+  min-width: 0;
+  transition: all var(--transition-slow);
+  background: transparent;
 }
 
 .light-mode .roomMainContent {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 /* Search Container */
 .roomTopSearchContainer {
   flex-shrink: 0;
-  padding: 1rem 1.5rem;
+  padding: var(--space-lg) var(--space-xl);
   background: transparent;
   border-bottom: none;
   z-index: 5;
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .light-mode .roomTopSearchContainer {
@@ -53,7 +53,7 @@
   justify-content: center;
 }
 
-/* Player Container */
+/* Player Container - Cinematic Feel */
 .roomPlayerContainer {
   flex: 1;
   background: var(--bg-navy-950);
@@ -62,17 +62,23 @@
   align-items: center;
   position: relative;
   min-height: 200px;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all var(--transition-slow);
+  margin: 0 var(--space-lg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), inset 0 0 60px rgba(37, 99, 235, 0.03);
+  overflow: hidden;
 }
 
 .light-mode .roomPlayerContainer {
-  background: #f1f5f9;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
 }
 
 /* Player placeholder content */
 .roomPlayerPlaceholder {
   text-align: center;
   color: var(--text-muted);
+  padding: var(--space-2xl);
 }
 
 .light-mode .roomPlayerPlaceholder {
@@ -81,33 +87,45 @@
 
 .roomPlaceholderContent {
   text-align: center;
-  max-width: 500px;
-  padding: 2rem;
+  max-width: 450px;
+  padding: var(--space-xl);
+  animation: fadeIn 0.5s ease-out;
 }
 
 .roomPlaceholderIcon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 5rem;
+  margin-bottom: var(--space-lg);
   color: var(--primary-green);
-  opacity: 0.5;
-  animation: roomFloatAnimation 3s ease-in-out infinite;
+  opacity: 0.4;
+  animation: roomFloatAnimation 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.3));
 }
 
 @keyframes roomFloatAnimation {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .roomPlaceholderContent h3 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  margin-bottom: var(--space-md);
   color: var(--text-main);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .roomPlaceholderContent p {
   color: var(--text-muted);
-  margin-bottom: 2rem;
-  line-height: 1.5;
+  margin-bottom: var(--space-xl);
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
 .roomQuickActions {
@@ -133,46 +151,52 @@
 .roomQuickActionBtn:hover {
   background: var(--primary-green-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 /* Queue Container */
 .roomBottomQueueContainer {
   flex-shrink: 0;
-  height: 280px; /* Fixed height for consistency */
-  background: var(--bg-dark);
+  height: 260px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
   border-top: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all var(--transition-slow);
+  margin: var(--space-md) var(--space-lg) var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 /* Queue header */
 .roomQueueHeader {
-  padding: 0.75rem 1.5rem;
+  padding: var(--space-md) var(--space-lg);
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-lighter);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-dark);
+  background: transparent;
 }
 
 .roomQueueHeader h3 {
   margin: 0;
-  background: linear-gradient(45deg, var(--text-main) 0%, var(--text-muted) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
 }
 
 .roomQueueCount {
   color: var(--primary-green);
-  font-weight: normal;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
 }
 
 .roomQueueControls {
@@ -201,41 +225,41 @@
   flex-shrink: 0;
   width: 0;
   height: 100vh;
-  background: linear-gradient(135deg, var(--bg-dark) 0%, rgba(25, 25, 25, 0.98) 100%);
+  background: var(--glass-bg);
   border-left: 1px solid var(--border-light);
   transform: translateX(100%);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all var(--transition-slow);
   z-index: 20;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(20px);
+  backdrop-filter: var(--glass-blur);
   overflow: hidden;
 }
 
 .light-mode .roomSidebar {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  border-left: 2px solid #cbd5e1;
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 1px solid var(--border-light);
 }
 
 .roomSidebarOpen {
-  width: 400px;
+  width: 380px;
   transform: translateX(0);
-  box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+  box-shadow: -20px 0 60px rgba(37, 99, 235, 0.08);
 }
 
 .light-mode .roomSidebarOpen {
-  box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.08);
 }
 
 /* Sidebar toggle button */
 .roomSidebarToggle {
   position: absolute;
-  left: -50px;
+  left: -52px;
   top: 20px;
-  width: 50px;
-  height: 50px;
-  background: var(--bg-dark);
-  border-radius: 8px 0 0 8px;
+  width: 52px;
+  height: 52px;
+  background: var(--primary-green);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -243,14 +267,16 @@
   border: none;
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
+  transition: all var(--transition-normal);
+  font-size: 1.3rem;
   z-index: 21;
+  box-shadow: var(--shadow-md);
 }
 
 .roomSidebarToggle:hover {
-  background: var(--primary-green);
-  left: -45px;
+  background: var(--primary-green-dark);
+  left: -48px;
+  box-shadow: var(--shadow-glow);
 }
 
 .roomSidebarToggle:focus-visible {
@@ -324,7 +350,7 @@
 .roomCopyCodeBtn:hover {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(229, 9, 20, 0.2);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
 .roomCopyFeedback {
@@ -341,9 +367,21 @@
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  20%,
+  80% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
 }
 
 .roomUserInfo {
@@ -396,7 +434,7 @@
 
 .roomTabActive {
   color: var(--primary-green);
-  background: rgba(229, 9, 20, 0.05);
+  background: rgba(37, 99, 235, 0.05);
   box-shadow: inset 0 -3px 0 var(--primary-green);
 }
 
@@ -494,7 +532,7 @@
 
 .roomMemberSpeaking {
   border-color: var(--primary-green);
-  background: rgba(229, 9, 20, 0.1);
+  background: rgba(37, 99, 235, 0.1);
 }
 
 .roomMemberInfo {
@@ -507,7 +545,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-green) 0%, #d32f2f 100%);
+  background: linear-gradient(135deg, var(--primary-green) 0%, #1D4ED8 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -549,13 +587,22 @@
 
 .roomStatusSpeaking {
   background: var(--primary-green);
-  box-shadow: 0 0 10px rgba(229, 9, 20, 0.7);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.7);
   animation: speakingPulse 1.5s infinite;
 }
 
 @keyframes speakingPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.7; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
 }
 
 .roomSpeakingBadge {
@@ -593,7 +640,7 @@
   .roomSidebarOpen {
     width: 350px;
   }
-  
+
   .roomTopSearchContainer {
     padding: 0.75rem 1rem;
   }
@@ -604,7 +651,7 @@
   .roomSidebarOpen {
     width: 320px;
   }
-  
+
   .roomBottomQueueContainer {
     height: 240px;
   }
@@ -615,11 +662,11 @@
   .roomScreenWrapper {
     position: relative;
   }
-  
+
   .roomMainContent {
     width: 100%;
   }
-  
+
   .roomSidebar {
     position: fixed;
     top: 0;
@@ -627,12 +674,12 @@
     height: 100vh;
     z-index: 1000;
   }
-  
+
   .roomSidebarOpen {
     width: 100vw;
     max-width: 400px;
   }
-  
+
   .roomSidebarOverlay {
     display: block;
     position: fixed;
@@ -644,38 +691,38 @@
     z-index: 999;
     backdrop-filter: blur(2px);
   }
-  
+
   .roomTabButton span {
     display: none;
   }
-  
+
   .roomBottomQueueContainer {
     height: 200px;
   }
-  
+
   .roomTopSearchContainer {
     padding: 0.75rem 1rem;
   }
-  
+
   .roomQueueHeader {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
-  
+
   .roomInfoPanel {
     padding: 1rem;
   }
-  
+
   .roomCodeContainer {
     flex-direction: column;
     text-align: center;
     gap: 0.5rem;
   }
-  
+
   .roomCodeDisplay {
     font-size: 1.2rem;
   }
-  
+
   .roomUserInfo {
     flex-direction: column;
     gap: 0.5rem;
@@ -688,39 +735,51 @@
   .roomSidebarOpen {
     width: 100vw;
   }
-  
+
   .roomBottomQueueContainer {
     height: 180px;
   }
-  
+
   .roomPlaceholderContent {
     padding: 1rem;
   }
-  
+
   .roomPlaceholderIcon {
     font-size: 3rem;
   }
-  
+
   .roomPlaceholderContent h3 {
     font-size: 1.4rem;
   }
 }
 
 /* Enhanced animations for sidebar opening/closing */
-.roomSidebarOpen .roomSidebarInner > * {
+.roomSidebarOpen .roomSidebarInner>* {
   animation: fadeInUp 0.4s ease forwards;
 }
 
-.roomSidebarOpen .roomSidebarInner > *:nth-child(1) { animation-delay: 0.1s; }
-.roomSidebarOpen .roomSidebarInner > *:nth-child(2) { animation-delay: 0.15s; }
-.roomSidebarOpen .roomSidebarInner > *:nth-child(3) { animation-delay: 0.2s; }
-.roomSidebarOpen .roomSidebarInner > *:nth-child(4) { animation-delay: 0.25s; }
+.roomSidebarOpen .roomSidebarInner>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.roomSidebarOpen .roomSidebarInner>*:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.roomSidebarOpen .roomSidebarInner>*:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.roomSidebarOpen .roomSidebarInner>*:nth-child(4) {
+  animation-delay: 0.25s;
+}
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -853,6 +912,7 @@
 .light-mode .roomCopyCodeBtn:hover {
   background: rgba(34, 197, 94, 0.1);
 }
+
 .light-mode .roomBottomQueueContainer {
   background: white;
   border-top: 2px solid #e2e8f0;

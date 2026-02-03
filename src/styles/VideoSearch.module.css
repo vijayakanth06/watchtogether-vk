@@ -1,13 +1,13 @@
 .videoSearchWrapper {
   position: relative;
-  transition: all var(--transition-speed) ease;
+  transition: all var(--transition-normal);
   flex: 1;
   min-width: 0;
 }
 
 .searchFormContainer {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   width: 100%;
   align-items: center;
 }
@@ -19,70 +19,116 @@
 
 .searchInputField {
   width: 100%;
-  padding-right: 40px;
-  transition: all 0.2s ease;
+  padding: 14px 48px 14px 20px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-light);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchInputField::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.searchInputField:hover {
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: var(--shadow-md);
 }
 
 .searchInputField:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: var(--shadow-glow), var(--shadow-md);
   transform: translateY(-1px);
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3), 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .clearSearchButton {
   position: absolute;
-  right: 8px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 1.5rem;
-  width: 24px;
-  height: 24px;
+  font-size: 1.2rem;
+  width: 28px;
+  height: 28px;
   padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
 }
 
 .clearSearchButton:hover {
-  background: var(--border-light);
-  color: var(--text-main);
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-green);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .searchLoadingIndicator {
   position: absolute;
-  right: 35px;
+  right: 45px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .loadingSpinnerSmall {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid var(--border-light);
   border-top: 2px solid var(--primary-green);
-  border-radius: 50%;
-  animation: searchSpinAnimation 1s linear infinite;
+  border-radius: var(--radius-full);
+  animation: searchSpinAnimation 0.8s linear infinite;
 }
 
 @keyframes searchSpinAnimation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .searchSubmitButton {
-  padding: 10px 15px;
+  padding: 14px 24px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-cyan) 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .searchSubmitButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(229, 9, 20, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow), var(--shadow-lg);
+}
+
+.searchSubmitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.searchSubmitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .searchNotification {
@@ -97,7 +143,7 @@
   min-width: 250px;
   font-weight: 600;
   animation: slideInDown 0.3s ease, slideOutUp 0.3s ease 2.7s forwards;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .searchNotification.success {
@@ -115,6 +161,7 @@
     transform: translate(-50%, -100%);
     opacity: 0;
   }
+
   to {
     transform: translate(-50%, 0);
     opacity: 1;
@@ -126,6 +173,7 @@
     transform: translate(-50%, 0);
     opacity: 1;
   }
+
   to {
     transform: translate(-50%, -100%);
     opacity: 0;
@@ -134,16 +182,16 @@
 
 .searchResultsContainer {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: all var(--transition-speed) ease;
-  background: rgba(31, 31, 31, 0.98);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
+  transition: all var(--transition-normal);
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--glass-blur);
   z-index: 100;
 }
 
@@ -152,7 +200,8 @@
   opacity: 1;
   overflow-y: auto;
   border: 1px solid var(--border-light);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-xl);
+  animation: scaleIn 0.2s ease-out;
 }
 
 .resultsHeaderSection {
@@ -214,7 +263,7 @@
 .searchResultItemWrapper:hover {
   background-color: rgba(51, 51, 51, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .thumbnailContainerSearch {
@@ -268,7 +317,7 @@
   gap: 0.2rem;
 }
 
-.channelNameSearch, 
+.channelNameSearch,
 .viewCountSearch {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -291,7 +340,7 @@
 .addToQueueButton:hover {
   background: var(--primary-green-dark);
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(229, 9, 20, 0.4);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .btnIconSearch {
@@ -350,24 +399,38 @@
   .searchResultsVisible {
     max-height: 50vh;
   }
-  
+
   .searchResultItemWrapper:hover {
     transform: none;
   }
-  
+
   .searchNotification {
     animation: mobileSlideIn 0.2s ease, mobileSlideOut 0.2s ease 2.8s forwards;
   }
 }
 
 @keyframes mobileSlideIn {
-  from { opacity: 0; transform: translate(-50%, -20px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 @keyframes mobileSlideOut {
-  from { opacity: 1; transform: translate(-50%, 0); }
-  to { opacity: 0; transform: translate(-50%, -20px); }
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
 }
 
 /* ===== LIGHT MODE STYLES ===== */
